@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MainWindow
@@ -12,7 +13,9 @@ namespace MainWindow
 
         private long id;
         private static Dictionary<long, Roulette> games = new Dictionary<long, Roulette>();
+        private static List<long> historyGames = new List<long>();
         private List<ChatUser> members = new List<ChatUser>();
+        private ChatUser startUser = null;
         private bool open = true;
         private int maxUser;
         private int curMember;
@@ -21,7 +24,18 @@ namespace MainWindow
         {
             return open;
         }
-
+        private int HistoryCount()
+        {
+            int i = 0;
+            foreach (long chatID in historyGames)
+            {
+                if (chatID == id)
+                {
+                    i++;
+                }
+            }
+            return i + 1;
+        }
         public static void Init(Bot bot)
         {
             if (_bot == null)
@@ -29,11 +43,8 @@ namespace MainWindow
                 _bot = bot;
             }
         }
-
         public void Shoot(ChatUser user)
         {
-            Console.WriteLine(user._user.FirstName + "is trying to shoot");
-
             if (members[curMember]._user.Id == user._user.Id)
             {
                 Random rnd = new Random();
@@ -60,9 +71,18 @@ namespace MainWindow
                 return null;
             }
         }
-
+        public void Abort(ChatUser sender)
+        {
+            if (startUser._user.Id == sender._user.Id)
+            {
+                historyGames.Add(id);
+                games.Remove(id);
+                _bot.SendMessage(id, "Da Spiel wurde vom Veranstalter abgebrochen!");
+            }
+        }
         private void NextPlayer(bool random = false)
         {
+            Thread.Sleep(500);
             Random rnd = new Random();
             int newNo = random ? rnd.Next(0, MemberCount()) : curMember + 1;
 
@@ -71,65 +91,75 @@ namespace MainWindow
                 newNo = 0;
             }
             curMember = newNo;
-            _bot.SendMessage(id, members[curMember]._user.FirstName + " ist jetzt an der Reihe.");
+            Send(id, members[curMember]._user.FirstName + " ist jetzt an der Reihe.");
         }
-
         private void SafePlayer()
         {
-            _bot.SendMessage(id, "KLICK! " + members[curMember]._user.FirstName + " hat sich eingeschissen, aber ist nicht gestorben.");
+            Send(id, "KLICK! " + members[curMember]._user.FirstName + " hat Glück gehabt");
             NextPlayer();
         }
-
+        private static void Send(long id, string msg)
+        {
+            Roulette table = GetGame(id);
+            _bot.SendMessageHTML(id, "<code>Roulette Runde " + table.HistoryCount() + " (" + table.members.Count() + "/" + table.maxUser + ")</code>" + Environment.NewLine + "<i>" + msg + "</i>");
+        }
         private void KillPlayer()
         {
-            _bot.SendMessage(id, members[curMember]._user.FirstName + " hat sich erschossen. Viel Glück beim nächsten mal!");
+            string msg = "🔫 PENG! " + members[curMember]._user.FirstName + " hat sich erschossen. Viel Glück beim nächsten mal!";
             members.RemoveAt(curMember);
+
             if (MemberCount() > 1)
             {
                 NextPlayer();
+                Send(id, msg);
+                return;
             }
             else
             {
-                _bot.SendMessage(id, members[0]._user.FirstName + " ist der Sieger dieser brutalen Runde, Glückwunsch!");
+                msg += Environment.NewLine + Environment.NewLine + "🎉 GEWINNER! " + members[0]._user.FirstName + " ist der Sieger dieser brutalen Runde, Glückwunsch!";
+                Send(id, msg);
+                historyGames.Add(id);
                 games.Remove(id);
             }
-        }
 
+            
+        }
         private Roulette(long chatID, ChatUser starter, int max)
         {
             id = chatID;
+
             maxUser = max;
             curMember = 0;
+            startUser = starter;
             members.Add(starter);
         }
-
         public void AddMember(ChatUser user)
         {
             if (open && !members.Contains(user))
             {
                 members.Add(user);
-                _bot.SendMessage(id, user._user.FirstName + " spielt nun mit!  (" + MemberCount() + " / " + maxUser + ")");
-
+                string msg = "🙋 " + user._user.FirstName + " spielt nun mit!(" + MemberCount() + " / " + maxUser + ")";
                 if (MemberCount() == maxUser)
                 {
                     open = false;
-                    _bot.SendMessage(id, "Das spiel beginnt...");
+                    msg += Environment.NewLine + "🏁 Das spiel beginnt...";
+                    _bot.SendMessageHTML(id, msg);
                     NextPlayer(true);
+                    return;
                 }
+                _bot.SendMessageHTML(id, msg);
             }
         }
-
         public int MemberCount()
         {
             return members.Count();
         }
-
         public static void StartGame(long chatID, ChatUser starter, int max)
         {
             if (max > 1 && GetGame(chatID) == null)
             {
                 games.Add(chatID, new Roulette(chatID, starter, max));
-                _bot.SendMessage(chatID, starter._user.FirstName + " hat eine Runde Roulette gestartet! Wer mitspielen möchte muss /roulette eingeben");
+                Send(chatID, starter._user.FirstName + " hat eine Runde Roulette gestartet!" + Environment.NewLine + "Wer mitspielen möchte muss /roulette eingeben.");
             }
         }
     }

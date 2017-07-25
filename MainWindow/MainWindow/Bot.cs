@@ -140,14 +140,32 @@ namespace MainWindow
                                 }
                             }
                             break;
+                        case "abort":
+                        case "cancel":
+                            if (Roulette.GetGame(chat.Id) != null)
+                            {
+                                Roulette gameTable = Roulette.GetGame(chat.Id);
+                                gameTable.Abort(user);
+                            }
+                            break;
+                        case "html":
+                            SendMessageHTML(chat.Id, "<code>Roulette Runde 3 (2/3)</code>" + Environment.NewLine + "<i>Yannis ist dran.</i>");
+                            break;
                     }
                 }
             }
         }
-        internal async void SendMessage(long chatID, string msg)
+
+        internal async void SendMessageHTML(long chatID, string msg, bool disableNotification = true)
         {
-            await _bot.SendTextMessageAsync(chatID, msg);
+            await _bot.SendTextMessageAsync(chatID, msg, ParseMode.Html, disableNotification: disableNotification);
         }
+
+        internal async void SendMessage(long chatID, string msg, bool disableNotification = true)
+        {
+            await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification);
+        }
+
         private async void OnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
         {
             await _bot.AnswerCallbackQueryAsync(callbackQueryEventArgs.CallbackQuery.Id, $"Received {callbackQueryEventArgs.CallbackQuery.Data}");
