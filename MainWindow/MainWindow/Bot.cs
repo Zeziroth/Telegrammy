@@ -55,6 +55,20 @@ namespace MainWindow
                             if (param.Count > 0)
                             {
                                 string trackingID = param[0];
+                                string response = HTTPRequester.SimpleRequest("http://nolp.dhl.de/nextt-online-public/set_identcodes.do?lang=de&idc=" + trackingID);
+                                string ort = TextHelper.StringBetweenStrings(response, @"<td data-label=""Ort"">", "</td>");
+                                string timestamp = TextHelper.StringBetweenStrings(response, @"<td data-label=""Datum/Uhrzeit"">", "</td>");
+                                string status = TextHelper.StringBetweenStrings(response, @"<td data-label=""Status"">", "</td>");
+
+                                if (ort == "")
+                                {
+                                    SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
+                                }
+                                else
+                                {
+                                    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
+                                }
+                                
                             }
                             break;
                         case "register":

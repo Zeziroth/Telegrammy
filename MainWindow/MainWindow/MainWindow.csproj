@@ -75,10 +75,12 @@
     <Compile Include="Bot.cs" />
     <Compile Include="ChatUser.cs" />
     <Compile Include="DBController.cs" />
+    <Compile Include="HTTPRequester.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Roulette.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="TextHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
