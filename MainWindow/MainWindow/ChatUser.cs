@@ -7,20 +7,22 @@ using System.Threading.Tasks;
 
 namespace MainWindow
 {
-    class ChatUser
+    public class ChatUser
     {
         public static Dictionary<long, ChatUser> AllUser { get; private set; }
 
-        public Telegram.Bot.Types.User _user { get; private set; }
-        public Stopwatch Timer { get; private set; }
-        public DateTime LastMessageTime { get; private set; }
-        public string LastMessage { get; private set; }
+        public Telegram.Bot.Types.User _user { get; set; }
+        public Stopwatch Timer { get; set; }
+        public DateTime LastMessageTime { get; set; }
+        public string LastMessage { get;  set; }
+        public ChatUser() { }
 
         private ChatUser(Telegram.Bot.Types.User user)
         {
             Timer = new Stopwatch();
             _user = user;
             LastMessage = "";
+            
         }
 
         public bool isSpamming()
@@ -33,7 +35,6 @@ namespace MainWindow
             }
             return true;
         }
-
         public static ChatUser GetUser(Telegram.Bot.Types.User user)
         {
             if (AllUser == null)
@@ -50,11 +51,12 @@ namespace MainWindow
 
             return AllUser[user.Id];
         }
-        public bool OnMessageReceived()
+        public bool OnMessageReceived(string msg)
         {
             if (!isSpamming())
             {
                 LastMessageTime = DateTime.Now;
+                LastMessage = msg;
                 return true;
             }
             return false;

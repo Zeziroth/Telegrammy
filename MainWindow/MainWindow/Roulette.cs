@@ -116,7 +116,7 @@ namespace MainWindow
             }
             else
             {
-                msg += Environment.NewLine + Environment.NewLine + "🎉 GEWINNER! " + members[0]._user.FirstName + " ist der Sieger dieser brutalen Runde, Glückwunsch!";
+                msg += Environment.NewLine + Environment.NewLine + "🎉 GEWINNER! " + Environment.NewLine + members[0]._user.FirstName + " ist der Sieger dieser brutalen Runde, Glückwunsch!";
                 Send(id, msg);
                 historyGames.Add(id);
                 games.Remove(id);
@@ -142,7 +142,7 @@ namespace MainWindow
                 if (MemberCount() == maxUser)
                 {
                     open = false;
-                    msg += Environment.NewLine + "🏁 Das spiel beginnt...";
+                    msg += Environment.NewLine + "🏁 Das spiel beginnt..." + Environment.NewLine + "Wenn du an der Reihe bist musst du /shoot eingeben";
                     _bot.SendMessageHTML(id, msg);
                     NextPlayer(true);
                     return;

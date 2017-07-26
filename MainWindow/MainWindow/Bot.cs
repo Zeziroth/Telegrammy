@@ -5,9 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Newtonsoft.Json.Linq;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.InputMessageContents;
+using Newtonsoft.Json;
+using System.Data.SQLite;
+using System.Data.Common;
 
 namespace MainWindow
 {
@@ -16,25 +21,101 @@ namespace MainWindow
         public string _key { get; private set; }
         public TelegramBotClient _bot { get; private set; }
         public Telegram.Bot.Types.User Data { get; private set; }
-        public List<long> chatroomIDs { get; private set; }
-
+        public Dictionary<long, Chat> chats { get; private set; }
+        public Dictionary<long, ChatUser> users { get; private set; }
         public Bot(string key)
         {
             Start(key);
             Roulette.Init(this);
         }
-
-        public bool RegisterChat(long id)
+        public void Init()
         {
-            if (!chatroomIDs.Contains(id))
+            RefreshChats();
+            RefreshUser();
+        }
+        internal void RefreshChats()
+        {
+            if (chats != null)
             {
-                chatroomIDs.Add(id);
-                Console.WriteLine("Room registered! (" + id + ")");
+                chats.Clear();
+            }
+            SQLiteDataReader chatReader = DBController.ReturnQuery("SELECT * FROM chat");
+            foreach (DbDataRecord chatRow in chatReader)
+            {
+                Chat curChat = JsonConvert.DeserializeObject<Chat>(chatRow["chatDATA"].ToString());
+                RegisterChat(curChat, true);
+            }
+        }
+        internal void RefreshUser()
+        {
+            if (users != null)
+            {
+                users.Clear();
+            }
+            SQLiteDataReader userReader = DBController.ReturnQuery("SELECT * FROM user");
+            foreach (DbDataRecord userRow in userReader)
+            {
+                ChatUser curUser = JsonConvert.DeserializeObject<ChatUser>(userRow["userDATA"].ToString());
+                RegisterUser(curUser, true);
+            }
+        }
+        public Chat GetChatByID(long id)
+        {
+            foreach (long chatID in chats.Keys)
+            {
+                if (chatID == id)
+                {
+                    return chats[chatID];
+                }
+            }
+            return null;
+        }
+        public Chat GetChatByName(string s)
+        {
+            foreach (long chatID in chats.Keys)
+            {
+                Chat chat = chats[chatID];
+
+                string chatName = chat.Type == Telegram.Bot.Types.Enums.ChatType.Private ? chat.Username : chat.Title;
+
+                if (chatName.ToLower() == s.ToLower())
+                {
+                    return chat;
+                }
+            }
+            return null;
+        }
+        public bool RegisterChat(Chat chat, bool dbLoad = false)
+        {
+            if (!chats.ContainsKey(chat.Id))
+            {
+                chats.Add(chat.Id, chat);
+                if (!dbLoad)
+                {
+                    DBController.AddChat(chat);
+                }
                 return true;
             }
-            Console.WriteLine("Room already registered! (" + id + ")");
             return false;
         }
+        public bool RegisterUser(ChatUser user, bool dbLoad = false)
+        {
+            if (!users.ContainsKey(user._user.Id))
+            {
+                users.Add(user._user.Id, user);
+                if (!dbLoad)
+                {
+                    DBController.AddUser(user);
+                }
+                return true;
+            }
+            if (!dbLoad)
+            {
+                DBController.AddUser(user);
+            }
+            return false;
+        }
+
         private async void Start(string key)
         {
             try
@@ -53,7 +134,8 @@ namespace MainWindow
                 _bot.OnReceiveError += OnReceiveError;
                 _bot.StartReceiving();
                 Console.WriteLine("Events up...");
-                chatroomIDs = new List<long>();
+                chats = new Dictionary<long, Chat>();
+                users = new Dictionary<long, ChatUser>();
             }
             catch
             {
@@ -94,18 +176,18 @@ namespace MainWindow
             Telegram.Bot.Types.Chat chat = message.Chat;
 
             ChatUser user = ChatUser.GetUser(from);
-
             if (message.Text.StartsWith("/"))
             {
-                if (user.OnMessageReceived())
+                if (user.OnMessageReceived(message.Text))
                 {
+                    RegisterUser(user);
                     string parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
                     switch (parseCommand.Remove(0, 1).ToLower())
                     {
                         case "register":
                             if (isAdmin(from.Id))
                             {
-                                if (RegisterChat(chat.Id))
+                                if (RegisterChat(chat))
                                 {
                                     SendMessage(chat.Id, "Chat with ID " + chat.Id + " successfully registered...");
                                 }
@@ -147,9 +229,6 @@ namespace MainWindow
                                 Roulette gameTable = Roulette.GetGame(chat.Id);
                                 gameTable.Abort(user);
                             }
-                            break;
-                        case "html":
-                            SendMessageHTML(chat.Id, "<code>Roulette Runde 3 (2/3)</code>" + Environment.NewLine + "<i>Yannis ist dran.</i>");
                             break;
                     }
                 }
