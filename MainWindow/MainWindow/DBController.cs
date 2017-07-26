@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Data.SQLite;
-using System.IO;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
 
@@ -56,7 +51,7 @@ namespace MainWindow
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Execute Error: " + ex.Message);
+                Console.WriteLine("(ExecuteQuery) Error: " + ex.Message);
                 return false;
             }
         }
@@ -69,7 +64,7 @@ namespace MainWindow
             }
             catch (Exception ex)
             {
-                Console.WriteLine("First Error: " + ex.Message);
+                Console.WriteLine("(ReturnFirst) Error: " + ex.Message);
                 return null;
             }
         }
@@ -82,7 +77,7 @@ namespace MainWindow
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Return Error: " + ex.Message);
+                Console.WriteLine("(ReturnQuery) Error: " + ex.Message);
                 return null;
             }
         }

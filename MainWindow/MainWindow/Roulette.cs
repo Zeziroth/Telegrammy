@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MainWindow
 {
@@ -110,8 +108,8 @@ namespace MainWindow
 
             if (MemberCount() > 1)
             {
-                NextPlayer();
                 Send(id, msg);
+                NextPlayer();
                 return;
             }
             else
