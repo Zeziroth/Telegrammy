@@ -28,6 +28,87 @@ namespace MainWindow
             RefreshChats();
             RefreshUser();
         }
+
+        private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        {
+            var message = messageEventArgs.Message;
+            
+
+            if (message == null || message.Type != MessageType.TextMessage) return;
+
+            Telegram.Bot.Types.User from = message.From;
+            Telegram.Bot.Types.Chat chat = message.Chat;
+
+            ChatUser user = ChatUser.GetUser(from);
+            if (message.Text.StartsWith("/"))
+            {
+                if (user.OnMessageReceived(message.Text))
+                {
+                    RegisterUser(user);
+                    string parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                    List<string> param = message.Text.Split(' ').ToList();
+                    param.RemoveAt(0);
+
+                    switch (parseCommand.Remove(0, 1).ToLower())
+                    {
+                        case "dhl":
+                            if (param.Count > 0)
+                            {
+                                string trackingID = param[0];
+                            }
+                            break;
+                        case "register":
+                            if (isAdmin(from.Id))
+                            {
+                                if (RegisterChat(chat))
+                                {
+                                    SendMessage(chat.Id, "Chat with ID " + chat.Id + " successfully registered...");
+                                }
+                            }
+                            break;
+                        case "kawaii":
+                            Random rnd = new Random();
+                            SendMessage(chat.Id, from.FirstName + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
+                            break;
+                        case "roulette":
+                            if (Roulette.GetGame(chat.Id) == null)
+                            {
+                                if (message.Text.Contains(' '))
+                                {
+                                    int maxMember = int.Parse(message.Text.Split(' ')[1]);
+                                    Roulette.StartGame(chat.Id, user, maxMember);
+                                }
+
+                            }
+                            else
+                            {
+                                Roulette.GetGame(chat.Id).AddMember(user);
+                            }
+                            break;
+                        case "shoot":
+                            if (Roulette.GetGame(chat.Id) != null)
+                            {
+                                Roulette gameTable = Roulette.GetGame(chat.Id);
+                                if (!gameTable.isOpen())
+                                {
+                                    gameTable.Shoot(user);
+                                }
+                            }
+                            break;
+                        case "abort":
+                        case "cancel":
+                            if (Roulette.GetGame(chat.Id) != null)
+                            {
+                                Roulette gameTable = Roulette.GetGame(chat.Id);
+                                gameTable.Abort(user);
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+
         internal void RefreshChats()
         {
             if (chats != null)
@@ -159,75 +240,6 @@ namespace MainWindow
         private async void OnInlineQueryReceived(object sender, InlineQueryEventArgs inlineQueryEventArgs)
         {
             await _bot.AnswerInlineQueryAsync(inlineQueryEventArgs.InlineQuery.Id, null, isPersonal: true, cacheTime: 0);
-        }
-        private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
-        {
-            var message = messageEventArgs.Message;
-
-
-            if (message == null || message.Type != MessageType.TextMessage) return;
-
-            Telegram.Bot.Types.User from = message.From;
-            Telegram.Bot.Types.Chat chat = message.Chat;
-
-            ChatUser user = ChatUser.GetUser(from);
-            if (message.Text.StartsWith("/"))
-            {
-                if (user.OnMessageReceived(message.Text))
-                {
-                    RegisterUser(user);
-                    string parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
-                    switch (parseCommand.Remove(0, 1).ToLower())
-                    {
-                        case "register":
-                            if (isAdmin(from.Id))
-                            {
-                                if (RegisterChat(chat))
-                                {
-                                    SendMessage(chat.Id, "Chat with ID " + chat.Id + " successfully registered...");
-                                }
-                            }
-                            break;
-                        case "kawaii":
-                            Random rnd = new Random();
-                            SendMessage(chat.Id, from.FirstName + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
-                            break;
-                        case "roulette":
-                            if (Roulette.GetGame(chat.Id) == null)
-                            {
-                                if (message.Text.Contains(' '))
-                                {
-                                    int maxMember = int.Parse(message.Text.Split(' ')[1]);
-                                    Roulette.StartGame(chat.Id, user, maxMember);
-                                }
-
-                            }
-                            else
-                            {
-                                Roulette.GetGame(chat.Id).AddMember(user);
-                            }
-                            break;
-                        case "shoot":
-                            if (Roulette.GetGame(chat.Id) != null)
-                            {
-                                Roulette gameTable = Roulette.GetGame(chat.Id);
-                                if (!gameTable.isOpen())
-                                {
-                                    gameTable.Shoot(user);
-                                }
-                            }
-                            break;
-                        case "abort":
-                        case "cancel":
-                            if (Roulette.GetGame(chat.Id) != null)
-                            {
-                                Roulette gameTable = Roulette.GetGame(chat.Id);
-                                gameTable.Abort(user);
-                            }
-                            break;
-                    }
-                }
-            }
         }
 
         internal async void SendMessageHTML(long chatID, string msg, bool disableNotification = true)

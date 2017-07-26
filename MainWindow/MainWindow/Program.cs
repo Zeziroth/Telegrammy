@@ -22,6 +22,7 @@ namespace MainWindow
 
             while (command != "end")
             {
+                
                 string cmd = command.Contains(' ') ? command.Split(' ')[0] : command;
                 List<string> param = command.Split(' ').ToList();
                 param.RemoveAt(0);
