@@ -8,6 +8,7 @@ namespace MainWindow
     {
         private static string command = "";
         private static Bot bot = null;
+        private static string[] endCommands = new string[] { "end", "close", "exit" };
 
         static void Main(string[] args)
         {
@@ -19,10 +20,9 @@ namespace MainWindow
             Console.WriteLine("Connected as: " + bot.Data.Username);
             DBController.Init();
             bot.Init();
-
-            while (command != "end")
+            Settings.ignoreInput = false;
+            while (!endCommands.Contains(command))
             {
-                
                 string cmd = command.Contains(' ') ? command.Split(' ')[0] : command;
                 List<string> param = command.Split(' ').ToList();
                 param.RemoveAt(0);
@@ -44,7 +44,7 @@ namespace MainWindow
                         foreach (long userID in bot.users.Keys)
                         {
                             ChatUser user = bot.users[userID];
-                            string uName = user._user.Username != null ? user._user.Username : user._user.FirstName;
+                            string uName = user.Username();
 
                             Console.WriteLine("\t" + uName + @" | Last Command: """ + user.LastMessage + @""" (" + user.LastMessageTime + ")");
                         }

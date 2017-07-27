@@ -21,6 +21,10 @@ namespace MainWindow
             LastMessage = "";
             
         }
+        public string Username()
+        {
+            return _user.Username != null ? _user.Username : _user.FirstName;
+        }
 
         public bool isSpamming()
         {

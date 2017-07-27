@@ -8,6 +8,7 @@ using Telegram.Bot.Types.Enums;
 using Newtonsoft.Json;
 using System.Data.SQLite;
 using System.Data.Common;
+using Telegram.Bot.Types.InlineQueryResults;
 
 namespace MainWindow
 {
@@ -28,20 +29,33 @@ namespace MainWindow
             RefreshChats();
             RefreshUser();
         }
-
-        private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        private long LongRandom(long min, long max)
         {
+            Random rand = new Random();
+            long result = rand.Next((Int32)(min >> 32), (Int32)(max >> 32));
+            result = (result << 32);
+            result = result | (long)rand.Next((Int32)min, (Int32)max);
+            return result;
+        }
+
+        private void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        {
+            if (Settings.ignoreInput)
+            {
+                return;
+            }
             var message = messageEventArgs.Message;
-            
+
 
             if (message == null || message.Type != MessageType.TextMessage) return;
 
             Telegram.Bot.Types.User from = message.From;
             Telegram.Bot.Types.Chat chat = message.Chat;
 
-            ChatUser user = ChatUser.GetUser(from);
+
             if (message.Text.StartsWith("/"))
             {
+                ChatUser user = ChatUser.GetUser(from);
                 if (user.OnMessageReceived(message.Text))
                 {
                     RegisterUser(user);
@@ -51,6 +65,26 @@ namespace MainWindow
 
                     switch (parseCommand.Remove(0, 1).ToLower())
                     {
+                        case "rtd":
+                        case "dice":
+                        case "roll":
+                        case "random":
+                            if (param.Count > 1)
+                            {
+                                try
+                                {
+                                    long min = long.Parse(param[0]);
+                                    long max = long.Parse(param[1]);
+
+                                    if (max > min)
+                                    {
+                                        long result = LongRandom(min, max + 1);
+                                        SendMessageHTML(chat.Id, "<i>" + user.Username() + " hat eine " + result + " gewürfelt.</i>");
+                                    }
+                                }
+                                catch { }
+                            }
+                            break;
                         case "dhl":
                             if (param.Count > 0)
                             {
@@ -68,7 +102,7 @@ namespace MainWindow
                                 {
                                     SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
                                 }
-                                
+
                             }
                             break;
                         case "register":
@@ -82,15 +116,22 @@ namespace MainWindow
                             break;
                         case "kawaii":
                             Random rnd = new Random();
-                            SendMessage(chat.Id, from.FirstName + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
+                            SendMessage(chat.Id, user.Username() + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
                             break;
                         case "roulette":
                             if (Roulette.GetGame(chat.Id) == null)
                             {
                                 if (message.Text.Contains(' '))
                                 {
-                                    int maxMember = int.Parse(message.Text.Split(' ')[1]);
-                                    Roulette.StartGame(chat.Id, user, maxMember);
+                                    try
+                                    {
+                                        int maxMember = int.Parse(message.Text.Split(' ')[1]);
+                                        if (maxMember <= 5000)
+                                        {
+                                            Roulette.StartGame(chat.Id, user, maxMember);
+                                        }
+                                    }
+                                    catch { }
                                 }
 
                             }
@@ -100,6 +141,7 @@ namespace MainWindow
                             }
                             break;
                         case "shoot":
+                        case "shot":
                             if (Roulette.GetGame(chat.Id) != null)
                             {
                                 Roulette gameTable = Roulette.GetGame(chat.Id);
@@ -247,13 +289,49 @@ namespace MainWindow
         {
             Console.WriteLine("Error");
         }
+
         private void OnChosenInlineResultReceived(object sender, ChosenInlineResultEventArgs chosenInlineResultEventArgs)
         {
             Console.WriteLine($"Received inline result: {chosenInlineResultEventArgs.ChosenInlineResult.ResultId}");
         }
+
         private async void OnInlineQueryReceived(object sender, InlineQueryEventArgs inlineQueryEventArgs)
         {
-            await _bot.AnswerInlineQueryAsync(inlineQueryEventArgs.InlineQuery.Id, null, isPersonal: true, cacheTime: 0);
+            try
+            {
+                string url = "http://pr0gramm.com/api/items/get?flags=11&tags=" + inlineQueryEventArgs.InlineQuery.Query;
+                string pr0List = HTTPRequester.SimpleRequest(url);
+
+                Pr0List list = JsonConvert.DeserializeObject<Pr0List>(pr0List);
+                List<InlineQueryResult> results = new List<InlineQueryResult>();
+                int i = 1;
+                foreach (Pr0Element itm in list.items)
+                {
+                    if (i <20)
+                    {
+                        //Console.WriteLine(itm.GetUrl());
+                        InlineQueryResult res = new InlineQueryResultMpeg4Gif
+                        {
+                            Id = itm.id.ToString(),
+                            ThumbUrl = itm.GetUrl(),
+                            Url = itm.GetUrl()
+                        };
+                        results.Add(res);
+                        i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                await _bot.AnswerInlineQueryAsync(inlineQueryEventArgs.InlineQuery.Id, results.ToArray(), isPersonal: true, cacheTime: 0);
+            }
+            catch
+            {
+                //Console.WriteLine(ex.Message);
+                //await _bot.AnswerInlineQueryAsync(inlineQueryEventArgs.InlineQuery.Id, null, isPersonal: true, cacheTime: 0);
+            }
+            
         }
 
         internal async void SendMessageHTML(long chatID, string msg, bool disableNotification = true)

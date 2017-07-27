@@ -89,11 +89,11 @@ namespace MainWindow
                 newNo = 0;
             }
             curMember = newNo;
-            Send(id, members[curMember]._user.FirstName + " ist jetzt an der Reihe.");
+            Send(id, members[curMember].Username() + " ist jetzt an der Reihe.");
         }
         private void SafePlayer()
         {
-            Send(id, "KLICK! " + members[curMember]._user.FirstName + " hat Glück gehabt");
+            Send(id, "KLICK! " + members[curMember].Username() + " hat Glück gehabt");
             NextPlayer();
         }
         private static void Send(long id, string msg)
@@ -103,7 +103,7 @@ namespace MainWindow
         }
         private void KillPlayer()
         {
-            string msg = "🔫 PENG! " + members[curMember]._user.FirstName + " hat sich erschossen. Viel Glück beim nächsten mal!";
+            string msg = "🔫 PENG! " + members[curMember].Username() + " hat sich erschossen. Viel Glück beim nächsten mal!";
             members.RemoveAt(curMember);
 
             if (MemberCount() > 1)
@@ -114,7 +114,7 @@ namespace MainWindow
             }
             else
             {
-                msg += Environment.NewLine + Environment.NewLine + "🎉 GEWINNER! " + Environment.NewLine + members[0]._user.FirstName + " ist der Sieger dieser brutalen Runde, Glückwunsch!";
+                msg += Environment.NewLine + Environment.NewLine + "🎉 GEWINNER! " + Environment.NewLine + members[0].Username() + " ist der Sieger dieser brutalen Runde, Glückwunsch!";
                 Send(id, msg);
                 historyGames.Add(id);
                 games.Remove(id);
@@ -136,7 +136,7 @@ namespace MainWindow
             if (open && !members.Contains(user))
             {
                 members.Add(user);
-                string msg = "🙋 " + user._user.FirstName + " spielt nun mit!(" + MemberCount() + " / " + maxUser + ")";
+                string msg = "🙋 " + user.Username() + " spielt nun mit! (" + MemberCount() + " / " + maxUser + ")";
                 if (MemberCount() == maxUser)
                 {
                     open = false;
@@ -157,7 +157,7 @@ namespace MainWindow
             if (max > 1 && GetGame(chatID) == null)
             {
                 games.Add(chatID, new Roulette(chatID, starter, max));
-                Send(chatID, starter._user.FirstName + " hat eine Runde Roulette gestartet!" + Environment.NewLine + "Wer mitspielen möchte muss /roulette eingeben.");
+                Send(chatID, starter.Username() + " hat eine Runde Roulette gestartet!" + Environment.NewLine + "Wer mitspielen möchte muss /roulette eingeben.");
             }
         }
     }
