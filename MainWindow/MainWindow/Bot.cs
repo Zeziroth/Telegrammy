@@ -40,6 +40,7 @@ namespace MainWindow
 
         private void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
+
             if (Settings.ignoreInput)
             {
                 return;
@@ -55,15 +56,35 @@ namespace MainWindow
 
             if (message.Text.StartsWith("/"))
             {
+
                 ChatUser user = ChatUser.GetUser(from);
                 if (user.OnMessageReceived(message.Text))
                 {
                     RegisterUser(user);
-                    string parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                    string parseCommand = "";
+
+                    if (message.Text.Contains("@"))
+                    {
+                        string toUser = message.Text.Split('@')[1].Contains(" ") ? message.Text.Split('@')[1].Split(' ')[0].ToLower() : message.Text.Split('@')[1].ToLower();
+                        if (toUser == Data.Username.ToLower())
+                        {
+                            parseCommand = message.Text.Split('@')[0];
+                        }
+                        else
+                        {
+                            parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                        }
+
+                    }
+                    else
+                    {
+                        parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                    }
+
                     List<string> param = message.Text.Split(' ').ToList();
                     param.RemoveAt(0);
 
-                    switch (parseCommand.Remove(0, 1).ToLower())
+                    switch (parseCommand.Remove(0, 1))
                     {
                         case "rtd":
                         case "dice":
@@ -307,7 +328,7 @@ namespace MainWindow
                 int i = 1;
                 foreach (Pr0Element itm in list.items)
                 {
-                    if (i <20)
+                    if (i < 20)
                     {
                         //Console.WriteLine(itm.GetUrl());
                         InlineQueryResult res = new InlineQueryResultMpeg4Gif
@@ -331,7 +352,7 @@ namespace MainWindow
                 //Console.WriteLine(ex.Message);
                 //await _bot.AnswerInlineQueryAsync(inlineQueryEventArgs.InlineQuery.Id, null, isPersonal: true, cacheTime: 0);
             }
-            
+
         }
 
         internal async void SendMessageHTML(long chatID, string msg, bool disableNotification = true)
