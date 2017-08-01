@@ -3,5 +3,5 @@ Ein TelegramBot, der allerwelts Dinge erledigt
 - DHL Paketverfolgung  
 - Russisch Roulette (Spiel)  
 - Pr0gramm Search (per InlineQuery)  
-- Random Zahlausgabe zwischen Min & Max  
-- Kawaii-meter
+- Kawaiimeter  
+- Random Zahlausgabe zwischen Min & Max
