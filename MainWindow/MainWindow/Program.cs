@@ -7,6 +7,7 @@ namespace MainWindow
 {
     class Program
     {
+        private static CommandController cController = null;
         private static string command = "";
         private static Bot bot = null;
         private static string[] endCommands = new string[] { "end", "close", "exit" };
@@ -31,7 +32,7 @@ namespace MainWindow
                 string cmd = command.Contains(' ') ? command.Split(' ')[0] : command;
                 param = command.Split(' ').ToList();
                 param.RemoveAt(0);
-                HandleCommand(cmd);
+                cController.HandleCommand(cmd);
                 Thread.Sleep(25);
                 Console.Write(">_ ");
                 command = Console.ReadLine();
@@ -109,31 +110,6 @@ namespace MainWindow
             }
             return false;
         }
-        private static void HandleCommand(string cmd)
-        {
-            string term = cmd.ToLower();
-            if (ValidCommand(term))
-            {
-                List<string> commandTree = GetCommandEntry(term);
-                foreach (Action action in commands[commandTree].Values)
-                {
-                    Thread t = new Thread(() => { action(); });
-                    t.Start();
-                    return;
-                }
-            }
-        }
-        private static List<string> GetCommandEntry(string cmd)
-        {
-            foreach (List<string> command in commands.Keys)
-            {
-                if (command.Contains(cmd.ToLower()))
-                {
-                    return command;
-                }
-            }
-            return null;
-        }
         private static void InitCommands()
         {
             commands.Add(new List<string>() { "clear" }, new Dictionary<string, Action>() { { "Löscht das aktuelle Konsolenfenster.", Console.Clear } });
@@ -141,6 +117,7 @@ namespace MainWindow
             commands.Add(new List<string>() { "member", "members", "user", "users" }, new Dictionary<string, Action>() { { "Zeigt Informationen über Benutzer an, welche den Bot genutzt haben.", PrintUser } });
             commands.Add(new List<string>() { "chats", "chat", "rooms", "groups", "group" }, new Dictionary<string, Action>() { { "Löscht das aktuelle Konsolenfenster.", PrintChats } });
             commands.Add(new List<string>() { "sendtochat" }, new Dictionary<string, Action>() { { "Sendet eine Nachricht an einen bestimmten Chat,", SendToChat } });
+            cController = new CommandController(ref commands);
         }
     }
 }

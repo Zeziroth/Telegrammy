@@ -21,8 +21,17 @@ namespace MainWindow
         public Telegram.Bot.Types.User Data { get; private set; }
         public Dictionary<long, Chat> chats { get; private set; }
         public Dictionary<long, ChatUser> users { get; private set; }
+        private static Dictionary<List<string>, Dictionary<string, Action>> commands = new Dictionary<List<string>, Dictionary<string, Action>>() { };
+        private static List<string> param = null;
+        private static Telegram.Bot.Types.User from = null;
+        private static Telegram.Bot.Types.Chat chat = null;
+        private static ChatUser user = null;
+        Message message = null;
+        private static CommandController cController = null;
+
         public Bot(string key)
         {
+            InitCommands();
             Start(key);
             Roulette.Init(this);
         }
@@ -44,6 +53,113 @@ namespace MainWindow
             var removeKeyboard = new ReplyKeyboardRemove();
             await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification, replyMarkup: removeKeyboard);
         }
+        private void InitCommands()
+        {
+            commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
+            commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
+            commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
+            commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
+            commands.Add(new List<string>() { "roulette" }, new Dictionary<string, Action>() { { "Eröffnet bzw. nimmt an einem neuen Roulettespiel teil.", RouletteHandler } });
+            commands.Add(new List<string>() { "shoot", "shot" }, new Dictionary<string, Action>() { { "Wenn du in einem Roulettespiel bist, kannst du hiermit deinen Schuss tätigen.", ShootHandler } });
+            commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
+            cController = new CommandController(ref commands);
+        }
+        private void Random()
+        {
+            if (param.Count > 1)
+            {
+                try
+                {
+                    long min = long.Parse(param[0]);
+                    long max = long.Parse(param[1]);
+
+                    if (max > min)
+                    {
+                        long result = Core.LongRandom(min, max + 1);
+                        SendMessageHTML(chat.Id, "<i>" + user.Username() + " hat eine " + result + " gewürfelt.</i>");
+                    }
+                }
+                catch { }
+            }
+        }
+        private void DHLTrack()
+        {
+            if (param.Count > 0)
+            {
+                string trackingID = param[0];
+                string response = HTTPRequester.SimpleRequest("http://nolp.dhl.de/nextt-online-public/set_identcodes.do?lang=de&idc=" + trackingID);
+                string ort = TextHelper.StringBetweenStrings(response, @"<td data-label=""Ort"">", "</td>");
+                string timestamp = TextHelper.StringBetweenStrings(response, @"<td data-label=""Datum/Uhrzeit"">", "</td>");
+                string status = TextHelper.StringBetweenStrings(response, @"<td data-label=""Status"">", "</td>");
+
+                if (ort == "")
+                {
+                    SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
+                }
+                else
+                {
+                    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
+                }
+
+            }
+        }
+        private void RegisterChat()
+        {
+            if (isAdmin(from.Id))
+            {
+                if (RegisterChat(chat))
+                {
+                    SendMessage(chat.Id, "Chat with ID " + chat.Id + " successfully registered...");
+                }
+            }
+        }
+        private void KawaiiMeter()
+        {
+            Random rnd = new Random();
+            SendMessage(chat.Id, user.Username() + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
+        }
+        private void RouletteHandler()
+        {
+            if (Roulette.GetGame(chat.Id) == null)
+            {
+                if (message.Text.Contains(' '))
+                {
+                    try
+                    {
+                        int maxMember = int.Parse(message.Text.Split(' ')[1]);
+                        if (maxMember <= 5000)
+                        {
+                            Roulette.StartGame(chat.Id, user, maxMember);
+                        }
+                    }
+                    catch { }
+                }
+
+            }
+            else
+            {
+                Roulette.GetGame(chat.Id).AddMember(user);
+            }
+        }
+        private void ShootHandler()
+        {
+            if (Roulette.GetGame(chat.Id) != null)
+            {
+                Roulette gameTable = Roulette.GetGame(chat.Id);
+                if (!gameTable.isOpen())
+                {
+                    gameTable.Shoot(user);
+                }
+            }
+        }
+        private void StopRoulette()
+        {
+            if (Roulette.GetGame(chat.Id) != null)
+            {
+                Roulette gameTable = Roulette.GetGame(chat.Id);
+                gameTable.Abort(user);
+            }
+        }
         private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
 
@@ -51,19 +167,18 @@ namespace MainWindow
             {
                 return;
             }
-            var message = messageEventArgs.Message;
+            message = messageEventArgs.Message;
 
 
             if (message == null || message.Type != MessageType.TextMessage) return;
 
-            Telegram.Bot.Types.User from = message.From;
-            Telegram.Bot.Types.Chat chat = message.Chat;
+            from = message.From;
+            chat = message.Chat;
 
 
             if (message.Text.StartsWith("/"))
             {
-
-                ChatUser user = ChatUser.GetUser(from);
+                user = ChatUser.GetUser(from);
                 if (user.OnMessageReceived(message.Text))
                 {
                     RegisterUser(user);
@@ -84,110 +199,12 @@ namespace MainWindow
                     }
                     else
                     {
-                        parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                        parseCommand = message.Text.Contains(" ") ? message.Text.Split(' ')[0] : message.Text;
                     }
 
-                    List<string> param = message.Text.Split(' ').ToList();
+                    param = message.Text.ToString().Split(' ').ToList();
                     param.RemoveAt(0);
-
-                    switch (parseCommand.Remove(0, 1))
-                    {
-                        case "rtd":
-                        case "dice":
-                        case "roll":
-                        case "random":
-                            if (param.Count > 1)
-                            {
-                                try
-                                {
-                                    long min = long.Parse(param[0]);
-                                    long max = long.Parse(param[1]);
-
-                                    if (max > min)
-                                    {
-                                        long result = LongRandom(min, max + 1);
-                                        SendMessageHTML(chat.Id, "<i>" + user.Username() + " hat eine " + result + " gewürfelt.</i>");
-                                    }
-                                }
-                                catch { }
-                            }
-                            break;
-                        case "dhl":
-                            if (param.Count > 0)
-                            {
-                                string trackingID = param[0];
-                                string response = HTTPRequester.SimpleRequest("http://nolp.dhl.de/nextt-online-public/set_identcodes.do?lang=de&idc=" + trackingID);
-                                string ort = TextHelper.StringBetweenStrings(response, @"<td data-label=""Ort"">", "</td>");
-                                string timestamp = TextHelper.StringBetweenStrings(response, @"<td data-label=""Datum/Uhrzeit"">", "</td>");
-                                string status = TextHelper.StringBetweenStrings(response, @"<td data-label=""Status"">", "</td>");
-
-                                if (ort == "")
-                                {
-                                    SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
-                                }
-                                else
-                                {
-                                    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
-                                }
-
-                            }
-                            break;
-                        case "register":
-                            if (isAdmin(from.Id))
-                            {
-                                if (RegisterChat(chat))
-                                {
-                                    SendMessage(chat.Id, "Chat with ID " + chat.Id + " successfully registered...");
-                                }
-                            }
-                            break;
-                        case "kawaii":
-                            Random rnd = new Random();
-                            SendMessage(chat.Id, user.Username() + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
-                            break;
-                        case "roulette":
-                            if (Roulette.GetGame(chat.Id) == null)
-                            {
-                                if (message.Text.Contains(' '))
-                                {
-                                    try
-                                    {
-                                        int maxMember = int.Parse(message.Text.Split(' ')[1]);
-                                        if (maxMember <= 5000)
-                                        {
-                                            Roulette.StartGame(chat.Id, user, maxMember);
-                                        }
-                                    }
-                                    catch { }
-                                }
-
-                            }
-                            else
-                            {
-                                Roulette.GetGame(chat.Id).AddMember(user);
-                            }
-                            break;
-                        case "shoot":
-                        case "shot":
-                            if (Roulette.GetGame(chat.Id) != null)
-                            {
-                                Roulette gameTable = Roulette.GetGame(chat.Id);
-                                if (!gameTable.isOpen())
-                                {
-                                    gameTable.Shoot(user);
-                                }
-                            }
-                            break;
-                        case "abort":
-                        case "cancel":
-                        case "bittestophabibi":
-                            if (Roulette.GetGame(chat.Id) != null)
-                            {
-                                Roulette gameTable = Roulette.GetGame(chat.Id);
-                                gameTable.Abort(user);
-                            }
-                            break;
-                    }
+                    cController.HandleCommand(parseCommand.Remove(0, 1));
                 }
             }
         }
@@ -234,13 +251,13 @@ namespace MainWindow
         {
             foreach (long chatID in chats.Keys)
             {
-                Chat chat = chats[chatID];
+                Chat tempChat = chats[chatID];
 
-                string chatName = chat.Type == Telegram.Bot.Types.Enums.ChatType.Private ? chat.Username : chat.Title;
+                string chatName = tempChat.Type == Telegram.Bot.Types.Enums.ChatType.Private ? tempChat.Username : tempChat.Title;
 
                 if (chatName.ToLower() == s.ToLower())
                 {
-                    return chat;
+                    return tempChat;
                 }
             }
             return null;

@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="Bot.cs" />
     <Compile Include="ChatUser.cs" />
+    <Compile Include="CommandController.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="DBController.cs" />
     <Compile Include="HTTPRequester.cs" />
