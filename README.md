@@ -1,5 +1,5 @@
 # Telegrammy
-Ein TelegramBot, der allerwelts Dinge erledigt  
+Ein TelegramBot, der Allerweltsdinge erledigt  
 - DHL Paketverfolgung  
 - Russisch Roulette (Spiel)  
 - Pr0gramm Search (per InlineQuery)  
