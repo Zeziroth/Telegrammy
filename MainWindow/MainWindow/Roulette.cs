@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MainWindow
 {
@@ -13,6 +16,7 @@ namespace MainWindow
         private static Dictionary<long, Roulette> games = new Dictionary<long, Roulette>();
         private static List<long> historyGames = new List<long>();
         private List<ChatUser> members = new List<ChatUser>();
+        private Revolver revolver = new Revolver();
         private ChatUser startUser = null;
         private bool open = true;
         private int maxUser;
@@ -45,16 +49,13 @@ namespace MainWindow
         {
             if (members[curMember]._user.Id == user._user.Id)
             {
-                Random rnd = new Random();
-                int luck = rnd.Next(0, 100);
-
-                if (luck <= 75)
+                if (revolver.Shoot())
                 {
-                    SafePlayer();
+                    KillPlayer();
                 }
                 else
                 {
-                    KillPlayer();
+                    SafePlayer();
                 }
             }
         }
@@ -75,7 +76,7 @@ namespace MainWindow
             {
                 historyGames.Add(id);
                 games.Remove(id);
-                _bot.SendMessage(id, "Da Spiel wurde vom Veranstalter abgebrochen!");
+                Send(id, "Da Spiel wurde vom Veranstalter abgebrochen!");
             }
         }
         private void NextPlayer(bool random = false)
@@ -89,17 +90,49 @@ namespace MainWindow
                 newNo = 0;
             }
             curMember = newNo;
-            Send(id, members[curMember].Username() + " ist jetzt an der Reihe.");
+            Send(id, members[curMember].Username() + " ist jetzt an der Reihe.", true);
         }
         private void SafePlayer()
         {
-            Send(id, "KLICK! " + members[curMember].Username() + " hat Glück gehabt");
+            Send(id, "KLICK! " + members[curMember].Username() + " hat Glück gehabt", true);
             NextPlayer();
         }
-        private static void Send(long id, string msg)
+        private static void Send(long id, string msg, bool keyboard = false)
         {
             Roulette table = GetGame(id);
-            _bot.SendMessageHTML(id, "<code>Roulette Runde " + table.HistoryCount() + " (" + table.members.Count() + "/" + table.maxUser + ")</code>" + Environment.NewLine + "<i>" + msg + "</i>");
+            if (keyboard)
+            {
+                AddKeyboard(id, msg);
+            }
+            else
+            {
+                Removekeyboard(id, msg);
+            }
+        }
+        private static void AddKeyboard(long id, string msg)
+        {
+            var addKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new []
+                    {
+                        new KeyboardButton("/shoot"),
+                    }});
+            Roulette table = GetGame(id);
+            _bot._bot.SendTextMessageAsync(id, "<code>Roulette Runde " + table.HistoryCount() + " (" + table.members.Count() + "/" + table.maxUser + ")</code>" + Environment.NewLine + "<i>" + msg + "</i>", ParseMode.Html, replyMarkup: addKeyboard);
+        }
+        private static void Removekeyboard(long id, string msg)
+        {
+            var removeKeyboard = new ReplyKeyboardRemove();
+            Roulette table = GetGame(id);
+            if (table != null)
+            {
+                _bot._bot.SendTextMessageAsync(id, "<code>Roulette Runde " + table.HistoryCount() + " (" + table.members.Count() + "/" + table.maxUser + ")</code>" + Environment.NewLine + "<i>" + msg + "</i>", ParseMode.Html, replyMarkup: removeKeyboard);
+            }
+            else
+            {
+                _bot._bot.SendTextMessageAsync(id, "<i>" + msg + "</i>", ParseMode.Html, replyMarkup: removeKeyboard);
+            }
+
         }
         private void KillPlayer()
         {
@@ -108,7 +141,7 @@ namespace MainWindow
 
             if (MemberCount() > 1)
             {
-                Send(id, msg);
+                Send(id, msg, true);
                 NextPlayer();
                 return;
             }
@@ -120,7 +153,7 @@ namespace MainWindow
                 games.Remove(id);
             }
 
-            
+
         }
         private Roulette(long chatID, ChatUser starter, int max)
         {
@@ -152,12 +185,19 @@ namespace MainWindow
         {
             return members.Count();
         }
-        public static void StartGame(long chatID, ChatUser starter, int max)
+        public static async void StartGame(long chatID, ChatUser starter, int max)
         {
+            var addKeyboard = new ReplyKeyboardMarkup(new[]
+                {
+                    new []
+                    {
+                        new KeyboardButton("/roulette"),
+                    }});
             if (max > 1 && GetGame(chatID) == null)
             {
                 games.Add(chatID, new Roulette(chatID, starter, max));
-                Send(chatID, starter.Username() + " hat eine Runde Roulette gestartet!" + Environment.NewLine + "Wer mitspielen möchte muss /roulette eingeben.");
+
+                await _bot._bot.SendTextMessageAsync(chatID, starter.Username() + " hat eine Runde Roulette gestartet!" + Environment.NewLine + "Wer mitspielen möchte muss /roulette eingeben.", replyMarkup: addKeyboard);
             }
         }
     }

@@ -74,12 +74,14 @@
   <ItemGroup>
     <Compile Include="Bot.cs" />
     <Compile Include="ChatUser.cs" />
+    <Compile Include="Core.cs" />
     <Compile Include="DBController.cs" />
     <Compile Include="HTTPRequester.cs" />
     <Compile Include="Pr0Element.cs" />
     <Compile Include="Pr0List.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Revolver.cs" />
     <Compile Include="Roulette.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="TextHelper.cs" />

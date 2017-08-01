@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using System.Data.SQLite;
 using System.Data.Common;
 using Telegram.Bot.Types.InlineQueryResults;
+using Telegram.Bot.Types.InlineKeyboardButtons;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MainWindow
 {
@@ -37,8 +39,12 @@ namespace MainWindow
             result = result | (long)rand.Next((Int32)min, (Int32)max);
             return result;
         }
-
-        private void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        internal async void RemoveKeyboard(long chatID, string msg, bool disableNotification)
+        {
+            var removeKeyboard = new ReplyKeyboardRemove();
+            await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification, replyMarkup: removeKeyboard);
+        }
+        private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
 
             if (Settings.ignoreInput)
@@ -174,6 +180,7 @@ namespace MainWindow
                             break;
                         case "abort":
                         case "cancel":
+                        case "bittestophabibi":
                             if (Roulette.GetGame(chat.Id) != null)
                             {
                                 Roulette gameTable = Roulette.GetGame(chat.Id);
