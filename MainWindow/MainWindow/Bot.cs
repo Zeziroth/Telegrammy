@@ -11,6 +11,8 @@ using System.Data.Common;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Collections.Specialized;
+using System.Net;
 
 namespace MainWindow
 {
@@ -57,6 +59,7 @@ namespace MainWindow
         {
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
+            commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
             commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
             commands.Add(new List<string>() { "roulette" }, new Dictionary<string, Action>() { { "Eröffnet bzw. nimmt an einem neuen Roulettespiel teil.", RouletteHandler } });
@@ -100,6 +103,48 @@ namespace MainWindow
                 {
                     SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
                 }
+
+            }
+        }
+        private void HermesTrack()
+        {
+            if (param.Count > 0)
+            {
+                string trackingID = param[0];
+                CookieContainer cookieCon = new CookieContainer();
+                string responseFirst = HTTPRequester.SimpleRequest("https://www.myhermes.de/wps/portal/paket/Home/privatkunden/privatkunden", cookieCon);
+
+                string actionURL = TextHelper.StringBetweenStrings(responseFirst, @"<form name=""mhStatusForm"" id=""mhStatusForm"" action=""", @""" onsubmit=");
+                string responseFinal = HTTPRequester.SimpleRequest("https://www.myhermes.de" + actionURL + "?action=trace&shipmentID=" + trackingID + "&receiptID=", cookieCon);
+                if (responseFinal.Contains("content_table table_shipmentDetails"))
+                {
+                    string cutFirst = TextHelper.StringBetweenStrings(responseFinal, @"<th class=""stateCol""><span>Status</span></th>", "</tbody>");
+                    string cutSecond = TextHelper.StringBetweenStrings(cutFirst, @"</tr>", "</tr>");
+                    string[] infos = new string[3];
+                    int i = 0;
+                    foreach (string line in cutSecond.Split(new string[] { Environment.NewLine }, StringSplitOptions.None))
+                    {
+                        if (line.Contains("<td>"))
+                        {
+                            infos[i] = line.Replace("<td>", "").Replace("</td>", "").TrimStart();
+                            i++;
+                        }
+                    }
+
+                    SendMessage(chat.Id, String.Join(Environment.NewLine, infos));
+                    return;
+                }
+                SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
+                Console.WriteLine();
+                return;
+                //if (ort == "")
+                //{
+                //    SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
+                //}
+                //else
+                //{
+                //    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
+                //}
 
             }
         }
