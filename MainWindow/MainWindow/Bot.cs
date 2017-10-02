@@ -13,6 +13,7 @@ using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Collections.Specialized;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace MainWindow
 {
@@ -59,6 +60,7 @@ namespace MainWindow
         {
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
+            commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den Mittagstisch von Jing-Jai.", GetFoodJingJai } });
             commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
             commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
@@ -66,6 +68,108 @@ namespace MainWindow
             commands.Add(new List<string>() { "shoot", "shot" }, new Dictionary<string, Action>() { { "Wenn du in einem Roulettespiel bist, kannst du hiermit deinen Schuss tätigen.", ShootHandler } });
             commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
             cController = new CommandController(ref commands);
+        }
+        private void GetFoodJingJai()
+        {
+            if (param.Count > 0)
+            {
+                try
+                {
+                    string response = HTTPRequester.SimpleRequest("http://www.jing-jai-bremen.de/mittagstisch/");
+                    string mainContent = TextHelper.StringBetweenStrings(response, @"<div id=""content_area"">", @"</p> </div>");
+                    string[] lines = mainContent.Split(new string[] { "</p>" }, StringSplitOptions.None);
+
+                    bool innerDay = false;
+                    JingJai curDay = null;
+                    List<JingJai> allDays = new List<JingJai>();
+                    foreach (string line in lines)
+                    {
+                        if (!innerDay)
+                        {
+                            if (line.TrimStart().StartsWith(@"<p><strong><span style=""background:yellow;"">"))
+                            {
+                                string day = TextHelper.StringBetweenStrings(line, @"<span style=""font-size:12.0pt;"">", "</span>");
+
+                                switch (day.ToLower())
+                                {
+                                    case "mo.":
+                                        day = "Montag";
+                                        break;
+                                    case "di.":
+                                        day = "Dienstag";
+                                        break;
+                                    case "mi.":
+                                        day = "Mittwoch";
+                                        break;
+                                    case "do.":
+                                        day = "Donnerstag";
+                                        break;
+                                    case "fr.":
+                                        day = "Freitag";
+                                        break;
+                                }
+                                if (day.ToLower() == param[0].ToLower())
+                                {
+                                    innerDay = true;
+                                    string title = TextHelper.StringBetweenStrings(line, @"<span style=""background:aqua;"">", "</span>").Replace("`", "").Replace("´", "");
+                                    curDay = new JingJai(day, title);
+                                }
+                                
+                            }
+                        }
+                        else if (line.TrimStart().StartsWith(@"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">"))
+                        {
+                            
+                            string desc = TextHelper.StringBetweenStrings(line, @"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">", "").Replace("  ", "");
+                            desc = desc.Replace(Environment.NewLine, String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;""><sup>[a-z]</sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<sup>[a-z]", String.Empty);
+
+
+                            desc = Regex.Replace(desc, @"<sup><span style=""color:red;"">[a-z]</span></sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]</span></sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]</span>", String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]", String.Empty);
+                            desc = Regex.Replace(desc, @"<[a-z]*>(.*?)<\/[a-z]*>", String.Empty);
+                            desc = Regex.Replace(desc, @"<[a-z]*>", String.Empty);
+                            desc = Regex.Replace(desc, @"<\/[a-z]*>", String.Empty);
+                            desc = desc.Replace("€", String.Empty);
+                            if (desc.Contains("color:red;"))
+                            {
+                                desc = Regex.Replace(desc, @"<span style=""color:red;"">.*", String.Empty);
+                                curDay.AddDesc(desc);
+                                innerDay = false;
+                                allDays.Add(curDay);
+                            }
+                            else
+                            {
+                                curDay.AddDesc(desc);
+                            }
+
+                        }
+                    }
+
+                    foreach (JingJai day in allDays)
+                    {
+                        if (day.day.ToLower() == param[0].ToLower())
+                        {
+                            SendMessageHTML(chat.Id, "<code>Am " +  day.day + " gibt es bei Jing-Jai</code>" + Environment.NewLine + "<b>" + day.title.TrimStart() + "</b>" + Environment.NewLine + Environment.NewLine + day.desc.Replace(" ", "").TrimStart());
+                            return;
+                        }
+                    }
+                    switch (param[0].ToLower())
+                    {
+                        case "montag":
+                        case "dienstag":
+                        case "mittwoch":
+                        case "donnerstag":
+                        case "freitag":
+                            SendMessageHTML(chat.Id, "<code>Jing-Jai bietet an diesem Tag kein Essen an!</code>");
+                            break;
+                    }
+                }
+                catch { }
+            }
         }
         private void Random()
         {
@@ -431,7 +535,11 @@ namespace MainWindow
 
         internal async void SendMessage(long chatID, string msg, bool disableNotification = true)
         {
-            await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification);
+            try
+            {
+                await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification);
+            }
+            catch { Console.WriteLine("Error sending message to: " + msg); }
         }
 
         private async void OnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)

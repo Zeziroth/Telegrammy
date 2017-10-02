@@ -78,6 +78,7 @@
     <Compile Include="Core.cs" />
     <Compile Include="DBController.cs" />
     <Compile Include="HTTPRequester.cs" />
+    <Compile Include="JingJai.cs" />
     <Compile Include="Pr0Element.cs" />
     <Compile Include="Pr0List.cs" />
     <Compile Include="Program.cs" />
