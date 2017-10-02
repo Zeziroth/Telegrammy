@@ -69,12 +69,54 @@ namespace MainWindow
             commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
             cController = new CommandController(ref commands);
         }
+        private bool isInnerWeek(string day)
+        {
+            switch (day.ToLower())
+            {
+                case "montag":
+                case "dienstag":
+                case "mittwoch":
+                case "donnerstag":
+                case "freitag":
+                    return true;
+                default:
+                    return false;
+            }
+        }
         private void GetFoodJingJai()
         {
             if (param.Count > 0)
             {
                 try
                 {
+                    string chosenDay = param[0].ToLower();
+                    switch (chosenDay.ToLower())
+                    {
+                        case "gestern":
+                            chosenDay = DateTime.Now.AddDays(-2).ToString("dddd").ToLower();
+                            break;
+                        case "vorgestern":
+                            chosenDay = DateTime.Now.AddDays(-1).ToString("dddd").ToLower();
+                            break;
+                        case "heute":
+                            chosenDay = DateTime.Now.ToString("dddd").ToLower();
+                            break;
+
+                        case "morgen":
+
+                            chosenDay = DateTime.Now.AddDays(1).ToString("dddd").ToLower();
+                            break;
+
+                        case "übermorgen":
+
+                            chosenDay = DateTime.Now.AddDays(2).ToString("dddd").ToLower();
+                            break;
+                    }
+                    Console.WriteLine(chosenDay);
+                    if (!isInnerWeek(chosenDay))
+                    {
+                        return;
+                    }
                     string response = HTTPRequester.SimpleRequest("http://www.jing-jai-bremen.de/mittagstisch/");
                     string mainContent = TextHelper.StringBetweenStrings(response, @"<div id=""content_area"">", @"</p> </div>");
                     string[] lines = mainContent.Split(new string[] { "</p>" }, StringSplitOptions.None);
@@ -108,18 +150,18 @@ namespace MainWindow
                                         day = "Freitag";
                                         break;
                                 }
-                                if (day.ToLower() == param[0].ToLower())
+                                if (day.ToLower() == chosenDay.ToLower())
                                 {
                                     innerDay = true;
                                     string title = TextHelper.StringBetweenStrings(line, @"<span style=""background:aqua;"">", "</span>").Replace("`", "").Replace("´", "");
                                     curDay = new JingJai(day, title);
                                 }
-                                
+
                             }
                         }
                         else if (line.TrimStart().StartsWith(@"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">"))
                         {
-                            
+
                             string desc = TextHelper.StringBetweenStrings(line, @"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">", "").Replace("  ", "");
                             desc = desc.Replace(Environment.NewLine, String.Empty);
                             desc = Regex.Replace(desc, @"<span style=""color:red;""><sup>[a-z]</sup>", String.Empty);
@@ -151,22 +193,13 @@ namespace MainWindow
 
                     foreach (JingJai day in allDays)
                     {
-                        if (day.day.ToLower() == param[0].ToLower())
+                        if (day.day.ToLower() == chosenDay.ToLower())
                         {
-                            SendMessageHTML(chat.Id, "<code>Am " +  day.day + " gibt es bei Jing-Jai</code>" + Environment.NewLine + "<b>" + day.title.TrimStart() + "</b>" + Environment.NewLine + Environment.NewLine + day.desc.Replace(" ", "").TrimStart());
+                            SendMessageHTML(chat.Id, "<code>Am " + day.day + " gibt es bei Jing-Jai</code>" + Environment.NewLine + "<b>" + day.title.TrimStart() + "</b>" + Environment.NewLine + Environment.NewLine + day.desc.Replace(" ", "").TrimStart());
                             return;
                         }
                     }
-                    switch (param[0].ToLower())
-                    {
-                        case "montag":
-                        case "dienstag":
-                        case "mittwoch":
-                        case "donnerstag":
-                        case "freitag":
-                            SendMessageHTML(chat.Id, "<code>Jing-Jai bietet an diesem Tag kein Essen an!</code>");
-                            break;
-                    }
+                    SendMessageHTML(chat.Id, "<code>Jing-Jai bietet diesen " + chosenDay + " kein Essen an!</code>");
                 }
                 catch { }
             }
