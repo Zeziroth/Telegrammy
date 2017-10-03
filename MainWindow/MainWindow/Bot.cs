@@ -34,6 +34,7 @@ namespace MainWindow
             InitCommands();
             Start(key);
             Roulette.Init(this);
+            new SteamFree(-209505282, this);
         }
         public void Init()
         {
