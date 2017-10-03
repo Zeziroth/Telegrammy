@@ -6,3 +6,5 @@ Ein TelegramBot, der Allerweltsdinge erledigt
 - Pr0gramm Search (per InlineQuery)  
 - Kawaiimeter  
 - Random Zahlausgabe zwischen Min & Max
+- SteamFreeGames
+- JingJai-Food Lookup
