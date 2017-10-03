@@ -23,15 +23,18 @@ namespace MainWindow
                 id = chatID;
                 _bot = bot;
                 ValidateDatabase();
-                while (true)
-                {
-                    FetchNewPosts();
-                    Console.WriteLine("[SteamFree] Next fetch in " + CHECK_INTERVAL + " minutes...");
-                    Thread.Sleep(CHECK_INTERVAL * 60000);
-                }
+                new Thread(() => { Run(); }).Start();
             }
         }
-
+        private static void Run()
+        {
+            while (true)
+            {
+                FetchNewPosts();
+                Console.WriteLine("[SteamFree] Next fetch in " + CHECK_INTERVAL + " minutes...");
+                Thread.Sleep(CHECK_INTERVAL * 60000);
+            }
+        }
         private static void FetchNewPosts()
         {
             Subreddit subreddit = reddit.GetSubreddit(SUBREDDIT_NAME);
@@ -76,7 +79,7 @@ namespace MainWindow
                 }
                 if (!visited)
                 {
-                    _bot.SendMessageHTML(id, "<code>Es ist ein neues FreeSteamGame verfügbar!</code>" + Environment.NewLine + post.Url.ToString());
+                    _bot.SendMessageHTML(id, "<code>FreeSteamGame</code>" + Environment.NewLine + "<code>" + post.Title + "</code>" + Environment.NewLine + post.Url.ToString(), false);
                     sqlController.ExecuteQuery("UPDATE redditpost SET hasVisited = 1 WHERE postID = '" + SQLController.SafeSQL(post.Id) + "'");
                 }
             }

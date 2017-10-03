@@ -485,6 +485,8 @@ namespace MainWindow
                 _bot = bot;
                 Data = await bot.GetMeAsync();
                 Console.WriteLine("Initialise successfully....");
+                chats = new Dictionary<long, Chat>();
+                users = new Dictionary<long, ChatUser>();
                 Console.WriteLine("Setting up events...");
                 _bot.OnCallbackQuery += OnCallbackQueryReceived;
                 _bot.OnMessage += OnMessageReceived;
@@ -494,8 +496,6 @@ namespace MainWindow
                 _bot.OnReceiveError += OnReceiveError;
                 _bot.StartReceiving();
                 Console.WriteLine("Events up...");
-                chats = new Dictionary<long, Chat>();
-                users = new Dictionary<long, ChatUser>();
             }
             catch
             {
