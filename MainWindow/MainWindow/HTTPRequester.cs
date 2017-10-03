@@ -1,23 +1,55 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 
 namespace MainWindow
 {
     public static class HTTPRequester
     {
-        private static WebClient client = null;
-        private static void Init()
+        public static string SimpleRequest(string url, CookieContainer cookieCon = null)
         {
-            if (client == null)
+            try
             {
-                client = new WebClient();
-                client.Proxy = null;
+                var request = (HttpWebRequest)WebRequest.Create(url);
+                if (cookieCon != null)
+                {
+                    request.CookieContainer = cookieCon;
+                }
+
+                var response = (HttpWebResponse)request.GetResponse();
+
+                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                return responseString;
+            }
+            catch
+            {
+                return "";
             }
         }
 
-        public static string SimpleRequest(string url)
+        public static string PostRequest(string url, string args, CookieContainer cookieCon = null)
         {
-            Init();
-            return client.DownloadString(url);
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            if (cookieCon != null)
+            {
+                request.CookieContainer = cookieCon;
+            }
+            var data = Encoding.ASCII.GetBytes(args);
+
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = data.Length;
+
+            using (var stream = request.GetRequestStream())
+            {
+                stream.Write(data, 0, data.Length);
+            }
+
+            var response = (HttpWebResponse)request.GetResponse();
+
+            var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+            return responseString;
         }
     }
 }

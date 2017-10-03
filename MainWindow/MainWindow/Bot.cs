@@ -11,6 +11,9 @@ using System.Data.Common;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Collections.Specialized;
+using System.Net;
+using System.Text.RegularExpressions;
 
 namespace MainWindow
 {
@@ -58,12 +61,149 @@ namespace MainWindow
         {
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
+            commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den Mittagstisch von Jing-Jai.", GetFoodJingJai } });
+            commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
             commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
             commands.Add(new List<string>() { "roulette" }, new Dictionary<string, Action>() { { "Eröffnet bzw. nimmt an einem neuen Roulettespiel teil.", RouletteHandler } });
             commands.Add(new List<string>() { "shoot", "shot" }, new Dictionary<string, Action>() { { "Wenn du in einem Roulettespiel bist, kannst du hiermit deinen Schuss tätigen.", ShootHandler } });
             commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
             cController = new CommandController(ref commands);
+        }
+        private bool isInnerWeek(string day)
+        {
+            switch (day.ToLower())
+            {
+                case "montag":
+                case "dienstag":
+                case "mittwoch":
+                case "donnerstag":
+                case "freitag":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        private void GetFoodJingJai()
+        {
+            if (param.Count > 0)
+            {
+                try
+                {
+                    string chosenDay = param[0].ToLower();
+                    switch (chosenDay.ToLower())
+                    {
+                        case "gestern":
+                            chosenDay = DateTime.Now.AddDays(-2).ToString("dddd").ToLower();
+                            break;
+                        case "vorgestern":
+                            chosenDay = DateTime.Now.AddDays(-1).ToString("dddd").ToLower();
+                            break;
+                        case "heute":
+                            chosenDay = DateTime.Now.ToString("dddd").ToLower();
+                            break;
+
+                        case "morgen":
+
+                            chosenDay = DateTime.Now.AddDays(1).ToString("dddd").ToLower();
+                            break;
+
+                        case "übermorgen":
+
+                            chosenDay = DateTime.Now.AddDays(2).ToString("dddd").ToLower();
+                            break;
+                    }
+                    Console.WriteLine(chosenDay);
+                    if (!isInnerWeek(chosenDay))
+                    {
+                        return;
+                    }
+                    string response = HTTPRequester.SimpleRequest("http://www.jing-jai-bremen.de/mittagstisch/");
+                    string mainContent = TextHelper.StringBetweenStrings(response, @"<div id=""content_area"">", @"</p> </div>");
+                    string[] lines = mainContent.Split(new string[] { "</p>" }, StringSplitOptions.None);
+
+                    bool innerDay = false;
+                    JingJai curDay = null;
+                    List<JingJai> allDays = new List<JingJai>();
+                    foreach (string line in lines)
+                    {
+                        if (!innerDay)
+                        {
+                            if (line.TrimStart().StartsWith(@"<p><strong><span style=""background:yellow;"">"))
+                            {
+                                string day = TextHelper.StringBetweenStrings(line, @"<span style=""font-size:12.0pt;"">", "</span>");
+
+                                switch (day.ToLower())
+                                {
+                                    case "mo.":
+                                        day = "Montag";
+                                        break;
+                                    case "di.":
+                                        day = "Dienstag";
+                                        break;
+                                    case "mi.":
+                                        day = "Mittwoch";
+                                        break;
+                                    case "do.":
+                                        day = "Donnerstag";
+                                        break;
+                                    case "fr.":
+                                        day = "Freitag";
+                                        break;
+                                }
+                                if (day.ToLower() == chosenDay.ToLower())
+                                {
+                                    innerDay = true;
+                                    string title = TextHelper.StringBetweenStrings(line, @"<span style=""background:aqua;"">", "</span>").Replace("`", "").Replace("´", "");
+                                    curDay = new JingJai(day, title);
+                                }
+
+                            }
+                        }
+                        else if (line.TrimStart().StartsWith(@"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">"))
+                        {
+
+                            string desc = TextHelper.StringBetweenStrings(line, @"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">", "").Replace("  ", "");
+                            desc = desc.Replace(Environment.NewLine, String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;""><sup>[a-z]</sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<sup>[a-z]", String.Empty);
+
+
+                            desc = Regex.Replace(desc, @"<sup><span style=""color:red;"">[a-z]</span></sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]</span></sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]</span>", String.Empty);
+                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]", String.Empty);
+                            desc = Regex.Replace(desc, @"<[a-z]*>(.*?)<\/[a-z]*>", String.Empty);
+                            desc = Regex.Replace(desc, @"<[a-z]*>", String.Empty);
+                            desc = Regex.Replace(desc, @"<\/[a-z]*>", String.Empty);
+                            desc = desc.Replace("€", String.Empty);
+                            if (desc.Contains("color:red;"))
+                            {
+                                desc = Regex.Replace(desc, @"<span style=""color:red;"">.*", String.Empty);
+                                curDay.AddDesc(desc);
+                                innerDay = false;
+                                allDays.Add(curDay);
+                            }
+                            else
+                            {
+                                curDay.AddDesc(desc);
+                            }
+
+                        }
+                    }
+
+                    foreach (JingJai day in allDays)
+                    {
+                        if (day.day.ToLower() == chosenDay.ToLower())
+                        {
+                            SendMessageHTML(chat.Id, "<code>Am " + day.day + " gibt es bei Jing-Jai</code>" + Environment.NewLine + "<b>" + day.title.TrimStart() + "</b>" + Environment.NewLine + Environment.NewLine + day.desc.Replace(" ", "").TrimStart());
+                            return;
+                        }
+                    }
+                    SendMessageHTML(chat.Id, "<code>Jing-Jai bietet diesen " + chosenDay + " kein Essen an!</code>");
+                }
+                catch { }
+            }
         }
         private void Random()
         {
@@ -101,6 +241,48 @@ namespace MainWindow
                 {
                     SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
                 }
+
+            }
+        }
+        private void HermesTrack()
+        {
+            if (param.Count > 0)
+            {
+                string trackingID = param[0];
+                CookieContainer cookieCon = new CookieContainer();
+                string responseFirst = HTTPRequester.SimpleRequest("https://www.myhermes.de/wps/portal/paket/Home/privatkunden/privatkunden", cookieCon);
+
+                string actionURL = TextHelper.StringBetweenStrings(responseFirst, @"<form name=""mhStatusForm"" id=""mhStatusForm"" action=""", @""" onsubmit=");
+                string responseFinal = HTTPRequester.SimpleRequest("https://www.myhermes.de" + actionURL + "?action=trace&shipmentID=" + trackingID + "&receiptID=", cookieCon);
+                if (responseFinal.Contains("content_table table_shipmentDetails"))
+                {
+                    string cutFirst = TextHelper.StringBetweenStrings(responseFinal, @"<th class=""stateCol""><span>Status</span></th>", "</tbody>");
+                    string cutSecond = TextHelper.StringBetweenStrings(cutFirst, @"</tr>", "</tr>");
+                    string[] infos = new string[3];
+                    int i = 0;
+                    foreach (string line in cutSecond.Split(new string[] { Environment.NewLine }, StringSplitOptions.None))
+                    {
+                        if (line.Contains("<td>"))
+                        {
+                            infos[i] = line.Replace("<td>", "").Replace("</td>", "").TrimStart();
+                            i++;
+                        }
+                    }
+
+                    SendMessage(chat.Id, String.Join(Environment.NewLine, infos));
+                    return;
+                }
+                SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
+                Console.WriteLine();
+                return;
+                //if (ort == "")
+                //{
+                //    SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
+                //}
+                //else
+                //{
+                //    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
+                //}
 
             }
         }
@@ -387,7 +569,11 @@ namespace MainWindow
 
         internal async void SendMessage(long chatID, string msg, bool disableNotification = true)
         {
-            await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification);
+            try
+            {
+                await _bot.SendTextMessageAsync(chatID, msg, disableNotification: disableNotification);
+            }
+            catch { Console.WriteLine("Error sending message to: " + msg); }
         }
 
         private async void OnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
