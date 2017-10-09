@@ -45,8 +45,9 @@ namespace MainWindow
                 long diff = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds() - post.CreatedUTC.ToUnixTimeSeconds();
                 if (diff < (TIME_FILTER * 86400))
                 {
+                    string title = post.Title;
                     //New post found (by time)
-                    if (post.LinkFlairText != "Ended")
+                    if (post.LinkFlairText != "Ended" && !title.Contains("(DLC"))
                     {
                         //New post found (by state)
                         AddPost(post);
