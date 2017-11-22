@@ -14,29 +14,34 @@ namespace MainWindow
         public Police(string keyword)
         {
             _keyword = keyword;
-            Load();
         }
-        private void Load()
+        private void Load(int articleNum)
         {
             _sourcePages = new List<HtmlDocument>();
             HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(HTTPRequester.SimpleRequest("https://www.presseportal.de/blaulicht/r/" + _keyword));
+            doc.LoadHtml(HTTPRequester.SimpleRequest("https://www.presseportal.de/blaulicht/r/" + _keyword + "/" + (articleNum - (articleNum % 27))));
             _sourcePages.Add(doc);
         }
         public string PrintArticle(int i = 0)
         {
-            Load();
+            i -= 1;
             _articles = new List<string>();
+            int articleNum = 0;
+            i = i > 0 ? i : 0;
+            Load(i);
+            articleNum = (i - (i % 27));
+
             foreach (HtmlDocument doc in _sourcePages)
             {
                 List<HtmlNode> bigContainer = GetDivsByClass(doc.DocumentNode, "grid-container");
-                HtmlNode mainContainer = bigContainer[1];
+                HtmlNode mainContainer = bigContainer[0];
 
-                IEnumerable<HtmlNode> articles = GetElementsByTagName(mainContainer, "article");
-                int ii = 0;
+                IEnumerable<HtmlNode> articles = GetElementsByTagName(doc.DocumentNode, "article");
+
+                Console.WriteLine("Found: " + articles.Count() + " articles");
                 foreach (HtmlNode article in articles)
                 {
-                    if (ii == i)
+                    if (articleNum == i)
                     {
                         string timestamp = GetElementsByClass(article, "span", "news-date sans")[0].InnerText;
                         HtmlNode headlineNode = GetElementsByClass(article, "h2", "news-headline news-headline-clamp")[0];
@@ -45,9 +50,10 @@ namespace MainWindow
                         string hrefLink = article.Attributes["data-url"].Value;
                         return "<code>[" + timestamp.Split(' ')[0] + "] " + headline + "</code>" + Environment.NewLine + Environment.NewLine + desc + Environment.NewLine + "<a href=\"https://www.presseportal.de/" + hrefLink + "\">Weiterlesen..</a>";
                     }
-                    ii++;
+                    articleNum++;
                 }
             }
+            Console.WriteLine("Nothing found");
             return "<code>Presseinformationen konnte nicht geladen werden!</code>";
         }
         public static IEnumerable<HtmlNode> GetElementsByTagName(HtmlNode parent, string name)

@@ -37,7 +37,7 @@ namespace MainWindow
             InitCommands();
             Start(key);
             Roulette.Init(this);
-            new SteamFree(-209505282, this); //Insert your Channel-ID
+            //new SteamFree(-209505282, this); //Insert your Channel-ID
         }
         public void Init()
         {
@@ -62,7 +62,7 @@ namespace MainWindow
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
             commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den Mittagstisch von Jing-Jai.", GetFoodJingJai } });
-            commands.Add(new List<string>() { "police", "polizei", "pol", "acab", "1314" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an.", GetPoliceNews} });
+            commands.Add(new List<string>() { "police", "polizei", "pol" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an.", GetPoliceNews} });
             commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
             commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
