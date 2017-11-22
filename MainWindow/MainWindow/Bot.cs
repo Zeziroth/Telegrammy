@@ -37,7 +37,7 @@ namespace MainWindow
             InitCommands();
             Start(key);
             Roulette.Init(this);
-            new SteamFree(-209505282, this);
+            new SteamFree(-209505282, this); //Insert your Channel-ID
         }
         public void Init()
         {
@@ -62,6 +62,7 @@ namespace MainWindow
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
             commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den Mittagstisch von Jing-Jai.", GetFoodJingJai } });
+            commands.Add(new List<string>() { "police", "polizei", "pol", "acab", "1314" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an.", GetPoliceNews} });
             commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
             commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
@@ -70,6 +71,7 @@ namespace MainWindow
             commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
             cController = new CommandController(ref commands);
         }
+        
         private bool isInnerWeek(string day)
         {
             switch (day.ToLower())
@@ -82,6 +84,29 @@ namespace MainWindow
                     return true;
                 default:
                     return false;
+            }
+        }
+        private void GetPoliceNews()
+        {
+            if (param.Count > 0)
+            {
+                try
+                {
+                    Police police = new Police(param[0].ToLower());
+                    if (param.Count > 1)
+                    {
+                        SendMessageHTML(chat.Id, police.PrintArticle(int.Parse(param[1])));
+                    }
+                    else
+                    {
+                        SendMessageHTML(chat.Id, police.PrintArticle(0));
+                    }
+                    
+                }
+                catch
+                {
+                    SendMessageHTML(chat.Id, "<code>Presseinformationen konnte nicht geladen werden!</code>");
+                }
             }
         }
         private void GetFoodJingJai()
@@ -436,7 +461,7 @@ namespace MainWindow
             {
                 Chat tempChat = chats[chatID];
 
-                string chatName = tempChat.Type == Telegram.Bot.Types.Enums.ChatType.Private ? tempChat.Username : tempChat.Title;
+                string chatName = tempChat.Type == ChatType.Private ? tempChat.Username : tempChat.Title;
 
                 if (chatName.ToLower() == s.ToLower())
                 {
