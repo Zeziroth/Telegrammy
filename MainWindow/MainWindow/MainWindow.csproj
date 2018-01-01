@@ -92,6 +92,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinancePair.cs" />
     <Compile Include="Bot.cs" />
     <Compile Include="ChatUser.cs" />
     <Compile Include="CommandController.cs" />

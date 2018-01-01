@@ -23,6 +23,7 @@ namespace MainWindow
 
             CheckTableExistence("chat");
             CheckTableExistence("user");
+            CheckTableExistence("xrp");
         }
         public static bool EntryExist(string query)
         {
@@ -132,6 +133,9 @@ namespace MainWindow
                     break;
                 case "chat":
                     ExecuteQuery("CREATE TABLE `chat` (`id` INTEGER PRIMARY KEY, `chatID` int(255), `chatDATA` VARCHAR(1000) NOT NULL);");
+                    break;
+                case "xrp":
+                    ExecuteQuery("CREATE TABLE `xrp` (`id` INTEGER PRIMARY KEY, `userID` int(255), `xrpAmount` int(255) NOT NULL, `usdTicker` REAL (5,2) NOT NULL, `timestamp` int(255) NOT NULL);");
                     break;
             }
         }

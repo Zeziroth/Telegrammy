@@ -14,6 +14,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using System.Collections.Specialized;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace MainWindow
 {
@@ -37,7 +38,7 @@ namespace MainWindow
             InitCommands();
             Start(key);
             Roulette.Init(this);
-            //new SteamFree(-209505282, this); //Insert your Channel-ID
+            new SteamFree(-209505282, this); //Insert your Channel-ID
         }
         public void Init()
         {
@@ -59,6 +60,7 @@ namespace MainWindow
         }
         private void InitCommands()
         {
+            commands.Add(new List<string>() { "xrp", "ripple" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs XRP/$ aus.", GetXRPChart } });
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
             commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den Mittagstisch von Jing-Jai.", GetFoodJingJai } });
@@ -85,6 +87,92 @@ namespace MainWindow
                 default:
                     return false;
             }
+        }
+        public static String GetTimestamp(DateTime value)
+        {
+            return value.ToString("yyyyMMddHHmmssffff");
+        }
+        private void GetXRPChart()
+        {
+            try
+            {
+                if (param.Count > 1)
+                {
+                    int xrpAmount = int.Parse(param[1]);
+                    switch (param[0])
+                    {
+                        case "add":
+                        case "buy":
+                            DBController.ExecuteQuery("INSERT INTO xrp (userID, xrpAmount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + xrpAmount + "', '" + GetXRPUSD().ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
+                            break;
+
+                        case "remove":
+                        case "sell":
+                            List<int> delIDs = new List<int>();
+                            if (DBController.EntryExist("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "' LIMIT 1"))
+                            {
+                                SQLiteDataReader readerDel = DBController.ReturnQuery("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "'");
+
+                                foreach (DbDataRecord row in readerDel)
+                                {
+                                    if (xrpAmount <= 0)
+                                    {
+                                        break;
+                                    }
+                                    int curID = int.Parse(row["id"].ToString());
+                                    int curXRPAmount = int.Parse(row["xrpAmount"].ToString());
+                                    if (curXRPAmount <= xrpAmount)
+                                    {
+                                        xrpAmount -= curXRPAmount;
+                                        delIDs.Add(curID);
+                                    }
+                                    else
+                                    {
+                                        int newXRPAmount = curXRPAmount - xrpAmount;
+                                        xrpAmount = 0;
+                                        DBController.ExecuteQuery("UPDATE xrp SET xrpAmount = '" + newXRPAmount + "' WHERE id = '" + curID + "'");
+                                    }
+                                }
+                                foreach (int delID in delIDs)
+                                {
+                                    DBController.ExecuteQuery("DELETE FROM xrp WHERE id = '" + delID + "'");
+                                }
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    decimal usd = GetXRPUSD();
+                    StringBuilder strBuild = new StringBuilder().AppendLine("<code>1 XRP = " + usd + "$</code>");
+                    if (DBController.EntryExist("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "' LIMIT 1"))
+                    {
+                        strBuild.AppendLine("");
+                        SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "'");
+                        foreach (DbDataRecord row in reader)
+                        {
+                            decimal oldTotalUSD = decimal.Parse(row["xrpAmount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
+                            decimal newTotalUSD = decimal.Parse(row["xrpAmount"].ToString()) * usd;
+                            decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
+                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["xrpAmount"] + "XRP (" + row["usdTicker"].ToString() + "$) => " + difference + "$ Profit</code>");
+                        }
+                    }
+                    SendMessageHTML(chat.Id, strBuild.ToString());
+                }
+            }
+            catch
+            {
+                SendMessageHTML(chat.Id, "Versuche es bitte später erneut.");
+            }
+        }
+        private decimal GetXRPUSD()
+        {
+            string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
+            List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
+            BinancePair xrpeth = jsonChart.Where((s) => s.symbol == "XRPETH").First();
+            BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
+            decimal usdTicker = Math.Round((decimal.Parse(xrpeth.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
+            return usdTicker;
         }
         private void GetPoliceNews()
         {

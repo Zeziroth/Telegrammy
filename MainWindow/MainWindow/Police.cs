@@ -24,37 +24,44 @@ namespace MainWindow
         }
         public string PrintArticle(int i = 0)
         {
-            i -= 1;
-            _articles = new List<string>();
-            int articleNum = 0;
-            i = i > 0 ? i : 0;
-            Load(i);
-            articleNum = (i - (i % 27));
-
-            foreach (HtmlDocument doc in _sourcePages)
+            try
             {
-                List<HtmlNode> bigContainer = GetDivsByClass(doc.DocumentNode, "grid-container");
-                HtmlNode mainContainer = bigContainer[0];
+                i -= 1;
+                _articles = new List<string>();
+                int articleNum = 0;
+                i = i > 0 ? i : 0;
+                Load(i);
+                articleNum = (i - (i % 27));
 
-                IEnumerable<HtmlNode> articles = GetElementsByTagName(doc.DocumentNode, "article");
-
-                Console.WriteLine("Found: " + articles.Count() + " articles");
-                foreach (HtmlNode article in articles)
+                foreach (HtmlDocument doc in _sourcePages)
                 {
-                    if (articleNum == i)
+                    List<HtmlNode> bigContainer = GetDivsByClass(doc.DocumentNode, "grid-container");
+                    HtmlNode mainContainer = bigContainer[0];
+
+                    IEnumerable<HtmlNode> articles = GetElementsByTagName(doc.DocumentNode, "article");
+
+
+                    foreach (HtmlNode article in articles)
                     {
-                        string timestamp = GetElementsByClass(article, "span", "news-date sans")[0].InnerText;
-                        HtmlNode headlineNode = GetElementsByClass(article, "h2", "news-headline news-headline-clamp")[0];
-                        string headline = GetElementsByTagName(headlineNode, "span").First().InnerText;
-                        string desc = GetDivByClass(article, "news-bodycopy").InnerText;
-                        string hrefLink = article.Attributes["data-url"].Value;
-                        return "<code>[" + timestamp.Split(' ')[0] + "] " + headline + "</code>" + Environment.NewLine + Environment.NewLine + desc + Environment.NewLine + "<a href=\"https://www.presseportal.de/" + hrefLink + "\">Weiterlesen..</a>";
+                        if (articleNum == i)
+                        {
+                            string timestamp = GetElementsByClass(article, "span", "news-date sans")[0].InnerText;
+                            HtmlNode headlineNode = GetElementsByClass(article, "h2", "news-headline news-headline-clamp")[0];
+                            string headline = GetElementsByTagName(headlineNode, "span").First().InnerText;
+                            string desc = GetDivByClass(article, "news-bodycopy").InnerText;
+                            string hrefLink = article.Attributes["data-url"].Value;
+                            return "<code>[" + timestamp.Split(' ')[0] + "] " + headline + "</code>" + Environment.NewLine + Environment.NewLine + desc + Environment.NewLine + "<a href=\"https://www.presseportal.de/" + hrefLink + "\">Weiterlesen..</a>";
+                        }
+                        articleNum++;
                     }
-                    articleNum++;
                 }
+
+                return "<code>Presseinformationen konnte nicht geladen werden!</code>";
             }
-            Console.WriteLine("Nothing found");
-            return "<code>Presseinformationen konnte nicht geladen werden!</code>";
+            catch
+            {
+                return "<code>Presseinformationen konnte nicht geladen werden!</code>";
+            }
         }
         public static IEnumerable<HtmlNode> GetElementsByTagName(HtmlNode parent, string name)
         {
