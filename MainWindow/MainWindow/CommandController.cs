@@ -39,6 +39,21 @@ namespace MainWindow
                 }
             }
         }
+
+        internal string GetHelp(string cmd)
+        {
+            string term = cmd.ToLower();
+            if (ValidCommand(term))
+            {
+                List<string> commandTree = GetCommandEntry(term);
+                foreach (string helpMSG in commands[commandTree].Keys)
+                {
+                    return helpMSG;
+                }
+            }
+            return "";
+        }
+
         private List<string> GetCommandEntry(string cmd)
         {
             foreach (List<string> command in commands.Keys)

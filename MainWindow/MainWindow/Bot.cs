@@ -60,14 +60,14 @@ namespace MainWindow
         }
         private void InitCommands()
         {
-            commands.Add(new List<string>() { "xrp", "ripple" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs XRP/$ aus.", GetXRPChart } });
-            commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt dir eine zufällige Zahl zwischen deiner Mindestzahl und deiner Maxzahl aus.", Random } });
-            commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID.", DHLTrack } });
-            commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den Mittagstisch von Jing-Jai.", GetFoodJingJai } });
-            commands.Add(new List<string>() { "police", "polizei", "pol" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an.", GetPoliceNews} });
-            commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID.", HermesTrack } });
+            commands.Add(new List<string>() { "xrp", "ripple" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs XRP/$ aus." + Environment.NewLine + "Beispiel: /xrp" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Ripples an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", GetXRPChart } });
+            commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random } });
+            commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /dhl JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des DHL-Paket zurück.", DHLTrack } });
+            commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai } });
+            commands.Add(new List<string>() { "police", "polizei", "pol" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews} });
+            commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /hermes JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des Hermes-Paket zurück.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
-            commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist.", KawaiiMeter } });
+            commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist." + Environment.NewLine + "Beispiel: /kawaii", KawaiiMeter } });
             commands.Add(new List<string>() { "roulette" }, new Dictionary<string, Action>() { { "Eröffnet bzw. nimmt an einem neuen Roulettespiel teil.", RouletteHandler } });
             commands.Add(new List<string>() { "shoot", "shot" }, new Dictionary<string, Action>() { { "Wenn du in einem Roulettespiel bist, kannst du hiermit deinen Schuss tätigen.", ShootHandler } });
             commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
@@ -500,6 +500,17 @@ namespace MainWindow
 
                     param = message.Text.ToString().Split(' ').ToList();
                     param.RemoveAt(0);
+
+                    if (param.Count > 0)
+                    {
+                        if (param[0].ToLower() == "help")
+                        {
+                            string helpMSG = cController.GetHelp(parseCommand.Remove(0, 1));
+                            SendMessageHTML(user._user.Id, "<code>Hilfe für den Befehl: " + parseCommand.Remove(0,1) + "</code>" + Environment.NewLine + helpMSG);
+                            return;
+                        }
+                    }
+                    
                     cController.HandleCommand(parseCommand.Remove(0, 1));
                 }
             }

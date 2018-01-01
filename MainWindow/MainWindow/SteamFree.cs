@@ -31,7 +31,6 @@ namespace MainWindow
             while (true)
             {
                 FetchNewPosts();
-                Console.WriteLine("[SteamFree] Next fetch in " + CHECK_INTERVAL + " minutes...");
                 Thread.Sleep(CHECK_INTERVAL * 60000);
             }
         }
