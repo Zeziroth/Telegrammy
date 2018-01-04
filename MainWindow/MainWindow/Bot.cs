@@ -552,15 +552,15 @@ namespace MainWindow
                         param = message.Text.ToString().Split(' ').ToList();
                         param.RemoveAt(0);
 
-                        if (param.Count > 0)
-                        {
-                            if (param[0].ToLower() == "help")
-                            {
-                                string helpMSG = cController.GetHelp(parseCommand.Remove(0, 1));
-                                SendMessageHTML(user._user.Id, "<code>Hilfe für den Befehl: " + parseCommand.Remove(0, 1) + "</code>" + Environment.NewLine + helpMSG);
-                                return;
-                            }
-                        }
+                        //if (param.Count > 0)
+                        //{
+                        //    if (param[0].ToLower() == "help")
+                        //    {
+                        //        string helpMSG = cController.GetHelp(parseCommand.Remove(0, 1));
+                        //        SendMessageHTML(user._user.Id, "<code>Hilfe für den Befehl: " + parseCommand.Remove(0, 1) + "</code>" + Environment.NewLine + helpMSG);
+                        //        return;
+                        //    }
+                        //}
 
                         cController.HandleCommand(parseCommand.Remove(0, 1));
                     }
