@@ -24,6 +24,9 @@ namespace MainWindow
             CheckTableExistence("chat");
             CheckTableExistence("user");
             CheckTableExistence("xrp");
+            CheckTableExistence("ada");
+            CheckTableExistence("trx");
+            CheckTableExistence("xlm");
         }
         public static bool EntryExist(string query)
         {
@@ -135,7 +138,10 @@ namespace MainWindow
                     ExecuteQuery("CREATE TABLE `chat` (`id` INTEGER PRIMARY KEY, `chatID` int(255), `chatDATA` VARCHAR(1000) NOT NULL);");
                     break;
                 case "xrp":
-                    ExecuteQuery("CREATE TABLE `xrp` (`id` INTEGER PRIMARY KEY, `userID` int(255), `xrpAmount` int(255) NOT NULL, `usdTicker` REAL (5,2) NOT NULL, `timestamp` int(255) NOT NULL);");
+                case "xlm":
+                case "ada":
+                case "trx":
+                    ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `userID` int(255), `amount` int(255) NOT NULL, `usdTicker` REAL (5,2) NOT NULL, `timestamp` int(255) NOT NULL);");
                     break;
             }
         }

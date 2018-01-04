@@ -60,11 +60,15 @@ namespace MainWindow
         }
         private void InitCommands()
         {
-            commands.Add(new List<string>() { "xrp", "ripple" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs XRP/$ aus." + Environment.NewLine + "Beispiel: /xrp" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Ripples an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", GetXRPChart } });
+            commands.Add(new List<string>() { "xrp" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs XRP/$ aus." + Environment.NewLine + "Beispiel: /xrp" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Ripples an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", GetXRPChart } });
+            commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /trx" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen TRON an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", GetTRXChart } });
+            commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs ADA/$ aus." + Environment.NewLine + "Beispiel: /ada" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Cardano an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", GetADAChart } });
+            commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /xlm" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Stellar an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", GetXLMChart } });
+
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /dhl JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des DHL-Paket zurück.", DHLTrack } });
             commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai } });
-            commands.Add(new List<string>() { "police", "polizei", "pol" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews} });
+            commands.Add(new List<string>() { "police", "polizei", "pol" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews } });
             commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /hermes JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des Hermes-Paket zurück.", HermesTrack } });
             commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
             commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist." + Environment.NewLine + "Beispiel: /kawaii", KawaiiMeter } });
@@ -73,7 +77,7 @@ namespace MainWindow
             commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
             cController = new CommandController(ref commands);
         }
-        
+
         private bool isInnerWeek(string day)
         {
             switch (day.ToLower())
@@ -94,48 +98,65 @@ namespace MainWindow
         }
         private void GetXRPChart()
         {
+            GetChart("XRP");
+        }
+        private void GetTRXChart()
+        {
+            GetChart("TRX");
+        }
+        private void GetADAChart()
+        {
+            GetChart("ADA");
+        }
+        private void GetXLMChart()
+        {
+            GetChart("XLM");
+        }
+        private void GetChart(string symbol)
+        {
             try
             {
                 if (param.Count > 1)
                 {
-                    int xrpAmount = int.Parse(param[1]);
+                    int coinAmount = int.Parse(param[1]);
+
                     switch (param[0])
                     {
                         case "add":
                         case "buy":
-                            DBController.ExecuteQuery("INSERT INTO xrp (userID, xrpAmount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + xrpAmount + "', '" + GetXRP()["USD"].ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
+                            DBController.ExecuteQuery("INSERT INTO " + symbol.ToLower() + "(userID, amount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + coinAmount + "', '" + GetDailyPrice(symbol)["USD"].ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
                             break;
 
                         case "remove":
                         case "sell":
                             List<int> delIDs = new List<int>();
-                            if (DBController.EntryExist("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "' LIMIT 1"))
+                            if (DBController.EntryExist("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "' LIMIT 1"))
                             {
-                                SQLiteDataReader readerDel = DBController.ReturnQuery("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "'");
+                                SQLiteDataReader readerDel = DBController.ReturnQuery("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "'");
 
                                 foreach (DbDataRecord row in readerDel)
                                 {
-                                    if (xrpAmount <= 0)
+                                    if (coinAmount <= 0)
                                     {
                                         break;
                                     }
                                     int curID = int.Parse(row["id"].ToString());
-                                    int curXRPAmount = int.Parse(row["xrpAmount"].ToString());
-                                    if (curXRPAmount <= xrpAmount)
+                                    int curCoinAmount = int.Parse(row["amount"].ToString());
+                                    if (curCoinAmount <= coinAmount)
                                     {
-                                        xrpAmount -= curXRPAmount;
+                                        coinAmount -= curCoinAmount;
                                         delIDs.Add(curID);
                                     }
                                     else
                                     {
-                                        int newXRPAmount = curXRPAmount - xrpAmount;
-                                        xrpAmount = 0;
-                                        DBController.ExecuteQuery("UPDATE xrp SET xrpAmount = '" + newXRPAmount + "' WHERE id = '" + curID + "'");
+                                        int newCoinAmount = curCoinAmount - coinAmount;
+                                        coinAmount = 0;
+                                        DBController.ExecuteQuery("UPDATE " + symbol + " SET amount = '" + newCoinAmount + "' WHERE id = '" + curID + "'");
                                     }
                                 }
                                 foreach (int delID in delIDs)
                                 {
-                                    DBController.ExecuteQuery("DELETE FROM xrp WHERE id = '" + delID + "'");
+                                    DBController.ExecuteQuery("DELETE FROM " + symbol + " WHERE id = '" + delID + "'");
                                 }
                             }
                             break;
@@ -144,22 +165,22 @@ namespace MainWindow
                 else
                 {
 
-                    Dictionary<string, decimal> XRPPrice = GetXRP();
-                    decimal usd = XRPPrice["USD"];
+                    Dictionary<string, decimal> CoinPrice = GetDailyPrice(symbol);
+                    decimal usd = CoinPrice["USD"];
 
-                    StringBuilder strBuild = new StringBuilder().AppendLine("<code>1 XRP = " + usd + "$</code>");
-                    if (DBController.EntryExist("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "' LIMIT 1"))
+                    StringBuilder strBuild = new StringBuilder().AppendLine("<code>1 " + symbol.ToUpper() + " = " + usd + "$</code>");
+                    if (DBController.EntryExist("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "' LIMIT 1"))
                     {
                         strBuild.AppendLine("");
-                        SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "'");
+                        SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "'");
                         foreach (DbDataRecord row in reader)
                         {
-                            decimal oldTotalUSD = decimal.Parse(row["xrpAmount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
-                            decimal newTotalUSD = decimal.Parse(row["xrpAmount"].ToString()) * usd;
+                            decimal oldTotalUSD = decimal.Parse(row["amount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
+                            decimal newTotalUSD = decimal.Parse(row["amount"].ToString()) * usd;
 
                             decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
                             decimal differenceEUR = Core.USD2EUR(newTotalUSD - oldTotalUSD);
-                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["xrpAmount"] + "XRP (" + row["usdTicker"].ToString() + "$) => " + difference + "$ (" + differenceEUR + " EUR) Profit</code>");
+                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["amount"] + symbol.ToUpper() + " (" + row["usdTicker"].ToString() + "$) => " + difference + "$ (" + differenceEUR + " EUR) Profit</code>");
                         }
                     }
                     SendMessageHTML(chat.Id, strBuild.ToString());
@@ -170,13 +191,14 @@ namespace MainWindow
                 SendMessageHTML(chat.Id, "Versuche es bitte später erneut.");
             }
         }
-        private Dictionary<string, decimal> GetXRP()
+        private Dictionary<string, decimal> GetDailyPrice(string symbol)
         {
             string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
             List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
-            BinancePair xrpeth = jsonChart.Where((s) => s.symbol == "XRPETH").First();
+            BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
+
             BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
-            decimal usdTicker = Math.Round((decimal.Parse(xrpeth.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
+            decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
             return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
         }
         private void GetPoliceNews()
@@ -194,7 +216,7 @@ namespace MainWindow
                     {
                         SendMessageHTML(chat.Id, police.PrintArticle(0));
                     }
-                    
+
                 }
                 catch
                 {
