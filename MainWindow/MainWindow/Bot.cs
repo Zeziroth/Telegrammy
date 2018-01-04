@@ -103,7 +103,7 @@ namespace MainWindow
                     {
                         case "add":
                         case "buy":
-                            DBController.ExecuteQuery("INSERT INTO xrp (userID, xrpAmount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + xrpAmount + "', '" + GetXRPUSD().ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
+                            DBController.ExecuteQuery("INSERT INTO xrp (userID, xrpAmount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + xrpAmount + "', '" + GetXRP()["USD"].ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
                             break;
 
                         case "remove":
@@ -143,7 +143,10 @@ namespace MainWindow
                 }
                 else
                 {
-                    decimal usd = GetXRPUSD();
+
+                    Dictionary<string, decimal> XRPPrice = GetXRP();
+                    decimal usd = XRPPrice["USD"];
+
                     StringBuilder strBuild = new StringBuilder().AppendLine("<code>1 XRP = " + usd + "$</code>");
                     if (DBController.EntryExist("SELECT * FROM xrp WHERE userID = '" + user._user.Id + "' LIMIT 1"))
                     {
@@ -153,8 +156,10 @@ namespace MainWindow
                         {
                             decimal oldTotalUSD = decimal.Parse(row["xrpAmount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
                             decimal newTotalUSD = decimal.Parse(row["xrpAmount"].ToString()) * usd;
+
                             decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
-                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["xrpAmount"] + "XRP (" + row["usdTicker"].ToString() + "$) => " + difference + "$ Profit</code>");
+                            decimal differenceEUR = Core.USD2EUR(newTotalUSD - oldTotalUSD);
+                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["xrpAmount"] + "XRP (" + row["usdTicker"].ToString() + "$) => " + difference + "$ (" + differenceEUR + " EUR) Profit</code>");
                         }
                     }
                     SendMessageHTML(chat.Id, strBuild.ToString());
@@ -165,14 +170,14 @@ namespace MainWindow
                 SendMessageHTML(chat.Id, "Versuche es bitte später erneut.");
             }
         }
-        private decimal GetXRPUSD()
+        private Dictionary<string, decimal> GetXRP()
         {
             string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
             List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
             BinancePair xrpeth = jsonChart.Where((s) => s.symbol == "XRPETH").First();
             BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
             decimal usdTicker = Math.Round((decimal.Parse(xrpeth.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
-            return usdTicker;
+            return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
         }
         private void GetPoliceNews()
         {
@@ -459,60 +464,67 @@ namespace MainWindow
         private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
 
-            if (Settings.ignoreInput)
+            try
             {
-                return;
-            }
-            message = messageEventArgs.Message;
-
-
-            if (message == null || message.Type != MessageType.TextMessage) return;
-
-            from = message.From;
-            chat = message.Chat;
-
-
-            if (message.Text.StartsWith("/"))
-            {
-                user = ChatUser.GetUser(from);
-                if (user.OnMessageReceived(message.Text))
+                if (Settings.ignoreInput)
                 {
-                    RegisterUser(user);
-                    string parseCommand = "";
+                    return;
+                }
+                message = messageEventArgs.Message;
 
-                    if (message.Text.Contains("@"))
+
+                if (message == null || message.Type != MessageType.TextMessage) return;
+
+                from = message.From;
+                chat = message.Chat;
+
+
+                if (message.Text.StartsWith("/"))
+                {
+                    user = ChatUser.GetUser(from);
+                    if (user.OnMessageReceived(message.Text))
                     {
-                        string toUser = message.Text.Split('@')[1].Contains(" ") ? message.Text.Split('@')[1].Split(' ')[0].ToLower() : message.Text.Split('@')[1].ToLower();
-                        if (toUser == Data.Username.ToLower())
+                        RegisterUser(user);
+                        string parseCommand = "";
+
+                        if (message.Text.Contains("@"))
                         {
-                            parseCommand = message.Text.Split('@')[0];
+                            string toUser = message.Text.Split('@')[1].Contains(" ") ? message.Text.Split('@')[1].Split(' ')[0].ToLower() : message.Text.Split('@')[1].ToLower();
+                            if (toUser == Data.Username.ToLower())
+                            {
+                                parseCommand = message.Text.Split('@')[0];
+                            }
+                            else
+                            {
+                                parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                            }
+
                         }
                         else
                         {
-                            parseCommand = message.Text.Contains(' ') ? message.Text.Split(' ')[0] : message.Text;
+                            parseCommand = message.Text.Contains(" ") ? message.Text.Split(' ')[0] : message.Text;
                         }
 
-                    }
-                    else
-                    {
-                        parseCommand = message.Text.Contains(" ") ? message.Text.Split(' ')[0] : message.Text;
-                    }
+                        param = message.Text.ToString().Split(' ').ToList();
+                        param.RemoveAt(0);
 
-                    param = message.Text.ToString().Split(' ').ToList();
-                    param.RemoveAt(0);
-
-                    if (param.Count > 0)
-                    {
-                        if (param[0].ToLower() == "help")
+                        if (param.Count > 0)
                         {
-                            string helpMSG = cController.GetHelp(parseCommand.Remove(0, 1));
-                            SendMessageHTML(user._user.Id, "<code>Hilfe für den Befehl: " + parseCommand.Remove(0,1) + "</code>" + Environment.NewLine + helpMSG);
-                            return;
+                            if (param[0].ToLower() == "help")
+                            {
+                                string helpMSG = cController.GetHelp(parseCommand.Remove(0, 1));
+                                SendMessageHTML(user._user.Id, "<code>Hilfe für den Befehl: " + parseCommand.Remove(0, 1) + "</code>" + Environment.NewLine + helpMSG);
+                                return;
+                            }
                         }
+
+                        cController.HandleCommand(parseCommand.Remove(0, 1));
                     }
-                    
-                    cController.HandleCommand(parseCommand.Remove(0, 1));
                 }
+            }
+            catch
+            {
+                Console.WriteLine("Error OnMessageReceived");
             }
         }
 

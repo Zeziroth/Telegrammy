@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 
 namespace MainWindow
 {
@@ -32,6 +33,23 @@ namespace MainWindow
         public static double DateTimeToUnixTime()
         {
             return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        }
+
+        public static decimal USD2EUR(decimal d)
+        {
+            return Math.Round(d / GetEURUSD(), 2);
+        }
+
+        public static decimal EUR2USD(decimal d)
+        {
+            return Math.Round(d * GetEURUSD(), 2);
+        }
+
+        private static decimal GetEURUSD()
+        {
+            string chart = HTTPRequester.SimpleRequest("https://api.fixer.io/latest?symbols=EUR,USD");
+            dynamic chartJson = JObject.Parse(chart);
+            return chartJson.rates.USD;
         }
     }
 }
