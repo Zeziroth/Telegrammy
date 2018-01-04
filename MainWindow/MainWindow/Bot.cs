@@ -124,7 +124,18 @@ namespace MainWindow
                     {
                         case "add":
                         case "buy":
-                            DBController.ExecuteQuery("INSERT INTO " + symbol.ToLower() + "(userID, amount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + coinAmount + "', '" + GetDailyPrice(symbol)["USD"].ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
+                            decimal buyChart = 0;
+                            if (param.Count > 2)
+                            {
+                                buyChart = decimal.Parse(param[2].ToString().Replace(".",","));
+                            }
+                            else
+                            {
+                                buyChart = GetDailyPrice(symbol)["USD"];
+                            }
+
+                            DBController.ExecuteQuery("INSERT INTO " + symbol.ToLower() + "(userID, amount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + coinAmount + "', '" + buyChart.ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
+                            SendMessageHTML(chat.Id, "Done.");
                             break;
 
                         case "remove":
@@ -159,6 +170,7 @@ namespace MainWindow
                                     DBController.ExecuteQuery("DELETE FROM " + symbol + " WHERE id = '" + delID + "'");
                                 }
                             }
+                            SendMessageHTML(chat.Id, "Done.");
                             break;
                     }
                 }
@@ -173,15 +185,25 @@ namespace MainWindow
                     {
                         strBuild.AppendLine("");
                         SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "'");
+                        int history = 0;
+                        decimal sumUSD = 0;
+                        decimal sumEUR = 0;
                         foreach (DbDataRecord row in reader)
                         {
+                            history++;
                             decimal oldTotalUSD = decimal.Parse(row["amount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
                             decimal newTotalUSD = decimal.Parse(row["amount"].ToString()) * usd;
 
                             decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
                             decimal differenceEUR = Core.USD2EUR(newTotalUSD - oldTotalUSD);
-                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["amount"] + symbol.ToUpper() + " (" + row["usdTicker"].ToString() + "$) => " + difference + "$ (" + differenceEUR + " EUR) Profit</code>");
+
+                            sumUSD += difference;
+                            sumEUR += differenceEUR;
+                            strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["amount"] + " " + symbol.ToUpper() + " (" + row["usdTicker"].ToString() + "$) => " + difference + "$ (" + differenceEUR + " EUR) Profit</code>");
                         }
+
+                        strBuild.AppendLine("");
+                        strBuild.AppendLine("<code>Total Profit: " + Math.Round(sumUSD, 2) + "$ (" + sumEUR + "€ EUR)</code>");
                     }
                     SendMessageHTML(chat.Id, strBuild.ToString());
                 }
