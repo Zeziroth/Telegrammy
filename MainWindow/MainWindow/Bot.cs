@@ -38,7 +38,7 @@ namespace MainWindow
             InitCommands();
             Start(key);
             Roulette.Init(this);
-            new SteamFree(-209505282, this); //Insert your Channel-ID
+            //new SteamFree(-209505282, this); //Insert your Channel-ID
         }
         public void Init()
         {
@@ -64,6 +64,8 @@ namespace MainWindow
             commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /trx" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen TRON an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", GetTRXChart } });
             commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs ADA/$ aus." + Environment.NewLine + "Beispiel: /ada" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Cardano an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", GetADAChart } });
             commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /xlm" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Stellar an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", GetXLMChart } });
+            commands.Add(new List<string>() { "coins", "coin", "profit" }, new Dictionary<string, Action>() { { "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit } });
+
 
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random } });
             commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /dhl JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des DHL-Paket zurück.", DHLTrack } });
@@ -92,10 +94,61 @@ namespace MainWindow
                     return false;
             }
         }
+
         public static String GetTimestamp(DateTime value)
         {
             return value.ToString("yyyyMMddHHmmssffff");
         }
+        private void GetAllProfit()
+        {
+            List<string> supportedCoins = new List<string>() { "xrp", "ada", "trx", "xlm" };
+
+            //decimal xrpUSDPrice = GetDailyPrice("xrp")["USD"];
+            //decimal adaUSDPrice = GetDailyPrice("ada")["USD"];
+            //decimal trxUSDPrice = GetDailyPrice("trx")["USD"];
+            //decimal xlmUSDPrice = GetDailyPrice("xlm")["USD"];
+
+            StringBuilder strBuild = new StringBuilder();
+            decimal allProfits = 0;
+
+            foreach (string coin in supportedCoins)
+            {
+                decimal coinProfit = SumProfit(coin);
+                strBuild.AppendLine("<code>1 " + coin.ToUpper() + " = " + GetDailyPrice(coin)["USD"] + "$ (Profit: " + Math.Round(coinProfit, 2) + "$ / " + Core.USD2EUR(coinProfit) + " EUR)</code>");
+                allProfits += coinProfit;
+            }
+
+            strBuild.AppendLine("");
+            strBuild.AppendLine("<code>Total Profits: " + Math.Round(allProfits, 2) + "$ (" + Core.USD2EUR(allProfits) + " EUR)</code>");
+
+            SendMessageHTML(chat.Id, strBuild.ToString());
+        }
+
+        private decimal SumProfit(string symbol)
+        {
+            Dictionary<string, decimal> CoinPrice = GetDailyPrice(symbol);
+            decimal usd = CoinPrice["USD"];
+            if (DBController.EntryExist("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "' LIMIT 1"))
+            {
+                SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "'");
+                decimal sumUSD = 0;
+
+                foreach (DbDataRecord row in reader)
+                {
+                    decimal oldTotalUSD = decimal.Parse(row["amount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
+                    decimal newTotalUSD = decimal.Parse(row["amount"].ToString()) * usd;
+
+
+                    decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
+
+                    sumUSD += difference;
+                }
+
+                return sumUSD;
+            }
+            return 0;
+        }
+
         private void GetXRPChart()
         {
             GetChart("XRP");
@@ -127,7 +180,7 @@ namespace MainWindow
                             decimal buyChart = 0;
                             if (param.Count > 2)
                             {
-                                buyChart = decimal.Parse(param[2].ToString().Replace(".",","));
+                                buyChart = decimal.Parse(param[2].ToString().Replace(".", ","));
                             }
                             else
                             {
