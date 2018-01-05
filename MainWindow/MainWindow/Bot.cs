@@ -268,13 +268,21 @@ namespace MainWindow
         }
         private Dictionary<string, decimal> GetDailyPrice(string symbol)
         {
-            string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
-            List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
-            BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
+            try
+            {
+                string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
+                List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
+                BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
 
-            BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
-            decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
-            return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
+                BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
+                decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
+                return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
+            }
+            catch
+            {
+                SendMessageHTML(chat.Id, "Fehler beim der Serverkommunikation.");
+                return null;
+            }
         }
         private void GetPoliceNews()
         {
