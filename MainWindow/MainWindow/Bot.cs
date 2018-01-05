@@ -38,7 +38,7 @@ namespace MainWindow
             InitCommands();
             Start(key);
             Roulette.Init(this);
-            new SteamFree(-209505282, this); //Insert your Channel-ID
+            //new SteamFree(-209505282, this); //Insert your Channel-ID
         }
         public void Init()
         {
@@ -63,6 +63,7 @@ namespace MainWindow
             commands.Add(new List<string>() { "xrp" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs XRP/$ aus." + Environment.NewLine + "Beispiel: /xrp" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Ripples an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", GetXRPChart } });
             commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /trx" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen TRON an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", GetTRXChart } });
             commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs ADA/$ aus." + Environment.NewLine + "Beispiel: /ada" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Cardano an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", GetADAChart } });
+            commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /xlm" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Stellar an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", GetXLMChart } });
             commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Gibt den aktuellen Kurs TRX/$ aus." + Environment.NewLine + "Beispiel: /xlm" + Environment.NewLine + "Beschreibung: Gibt den aktuellen Kurs zurück, und zeigt Ihre eigenen Stellar an, und berechnet den Profit zwischen damaligem Kauf und dem heutigen Kurs" + Environment.NewLine + Environment.NewLine + "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", GetXLMChart } });
 
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random } });
@@ -215,13 +216,21 @@ namespace MainWindow
         }
         private Dictionary<string, decimal> GetDailyPrice(string symbol)
         {
-            string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
-            List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
-            BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
+            try
+            {
+                string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
+                List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
+                BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
 
-            BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
-            decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
-            return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
+                BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
+                decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
+                return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
+            }
+            catch
+            {
+                SendMessageHTML(chat.Id, "Fehler beim der Serverkommunikation.");
+                return null;
+            }
         }
         private void GetPoliceNews()
         {
