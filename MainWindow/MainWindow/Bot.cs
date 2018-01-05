@@ -102,12 +102,7 @@ namespace MainWindow
         private void GetAllProfit()
         {
             List<string> supportedCoins = new List<string>() { "xrp", "ada", "trx", "xlm" };
-
-            //decimal xrpUSDPrice = GetDailyPrice("xrp")["USD"];
-            //decimal adaUSDPrice = GetDailyPrice("ada")["USD"];
-            //decimal trxUSDPrice = GetDailyPrice("trx")["USD"];
-            //decimal xlmUSDPrice = GetDailyPrice("xlm")["USD"];
-
+            
             StringBuilder strBuild = new StringBuilder();
             decimal allProfits = 0;
 
