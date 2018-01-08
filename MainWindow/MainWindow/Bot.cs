@@ -106,13 +106,12 @@ namespace MainWindow
         {
             long chatID = chat.Id;
             int userID = user._user.Id;
-
-            List<string> supportedCoins = new List<string>() { "xrp", "ada", "trx", "xlm", "iota" };
+            
 
             StringBuilder strBuild = new StringBuilder();
             decimal allProfits = 0;
 
-            foreach (string coin in supportedCoins)
+            foreach (string coin in Settings.supportedCoins)
             {
                 Dictionary<int, decimal> coinStats = SumCoin(coin, userID);
                 decimal coinProfit = 0;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using Newtonsoft.Json;
 using Telegram.Bot.Types;
@@ -23,11 +24,12 @@ namespace MainWindow
 
             CheckTableExistence("chat");
             CheckTableExistence("user");
-            CheckTableExistence("xrp");
-            CheckTableExistence("ada");
-            CheckTableExistence("trx");
-            CheckTableExistence("xlm");
-            CheckTableExistence("iota");
+
+            foreach (string supportedCoin in Settings.supportedCoins)
+            {
+                CheckTableExistence(supportedCoin);
+            }
+
             CheckTableExistence("invest");
         }
         public static bool EntryExist(string query)
@@ -131,24 +133,33 @@ namespace MainWindow
         private static void CreateTable(string tableName)
         {
             Console.WriteLine("Creating Table... " + tableName);
+            bool found = false;
+
             switch (tableName)
             {
                 case "user":
                     ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `userID` int(255), `userDATA` VARCHAR(1000) NOT NULL)");
+                    found = true;
                     break;
                 case "chat":
                     ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `chatID` int(255), `chatDATA` VARCHAR(1000) NOT NULL)");
+                    found = true;
                     break;
                 case "invest":
                     ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `userID` int(255), `amount` int(255) NOT NULL)");
+                    found = true;
                     break;
-                case "xrp":
-                case "xlm":
-                case "ada":
-                case "iota":
-                case "trx":
-                    ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `userID` int(255), `amount` int(255) NOT NULL)");
-                    break;
+            }
+
+            if (!found)
+            {
+                foreach (string supportedCoin in Settings.supportedCoins)
+                {
+                    if (tableName == supportedCoin)
+                    {
+                        ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `userID` int(255), `amount` int(255) NOT NULL)");
+                    }
+                }
             }
         }
     }
