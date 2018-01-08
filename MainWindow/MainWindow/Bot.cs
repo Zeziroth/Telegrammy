@@ -68,6 +68,7 @@ namespace MainWindow
 
             commands.Add(new List<string>() { "coins", "coin", "profit" }, new Dictionary<string, Action>() { { "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit } });
             commands.Add(new List<string>() { "invest" }, new Dictionary<string, Action>() { { "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest } });
+            commands.Add(new List<string>() { "supported", "supportedcoin", "supportedcoins" }, new Dictionary<string, Action>() { { "Zeigt eine Liste aller vom Bot unterstützten Cryptocoins an.", ShowSupportedCoins } });
 
 
             commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random } });
@@ -201,6 +202,20 @@ namespace MainWindow
                 return new Dictionary<int, decimal>() { { amount, sumUSD } };
             }
             return null;
+        }
+        private void ShowSupportedCoins()
+        {
+            long chatID = chat.Id;
+            int userID = user._user.Id;
+            try
+            {
+                SendMessageHTML(chat.Id, "<code>Unterstützte Kryptowährungen" + Environment.NewLine + string.Join(", ", Settings.supportedCoins.ToArray()) + "</code>");
+
+            }
+            catch
+            {
+                SendMessageHTML(chat.Id, "Versuche es bitte später erneut.");
+            }
         }
         private void ManageCoins(string symbol)
         {
