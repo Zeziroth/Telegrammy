@@ -27,6 +27,7 @@ namespace MainWindow
             CheckTableExistence("ada");
             CheckTableExistence("trx");
             CheckTableExistence("xlm");
+            CheckTableExistence("iota");
             CheckTableExistence("invest");
         }
         public static bool EntryExist(string query)
@@ -144,6 +145,7 @@ namespace MainWindow
                 case "xrp":
                 case "xlm":
                 case "ada":
+                case "iota":
                 case "trx":
                     ExecuteQuery("CREATE TABLE `" + tableName.ToLower() + "` (`id` INTEGER PRIMARY KEY, `userID` int(255), `amount` int(255) NOT NULL)");
                     break;

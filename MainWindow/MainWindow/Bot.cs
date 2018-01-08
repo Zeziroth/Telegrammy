@@ -60,10 +60,12 @@ namespace MainWindow
         }
         private void InitCommands()
         {
-            commands.Add(new List<string>() { "xrp" }, new Dictionary<string, Action>() { { "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", GetXRPChart } });
-            commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", GetTRXChart } });
-            commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", GetADAChart } });
-            commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", GetXLMChart } });
+            commands.Add(new List<string>() { "xrp" }, new Dictionary<string, Action>() { { "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", () => ManageCoins("XRP") } });
+            commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", () => ManageCoins("TRX") } });
+            commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", () => ManageCoins("ADA") } });
+            commands.Add(new List<string>() { "iota" }, new Dictionary<string, Action>() { { "Beispiel: /iota buy 90, /iota sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an IOTA mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/iota' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an IOTA aus ihrem Bestand entfernt.", () => ManageCoins("IOTA") } });
+            commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", () => ManageCoins("XLM") } });
+
             commands.Add(new List<string>() { "coins", "coin", "profit" }, new Dictionary<string, Action>() { { "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit } });
             commands.Add(new List<string>() { "invest" }, new Dictionary<string, Action>() { { "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest } });
 
@@ -105,7 +107,7 @@ namespace MainWindow
             long chatID = chat.Id;
             int userID = user._user.Id;
 
-            List<string> supportedCoins = new List<string>() { "xrp", "ada", "trx", "xlm" };
+            List<string> supportedCoins = new List<string>() { "xrp", "ada", "trx", "xlm", "iota" };
 
             StringBuilder strBuild = new StringBuilder();
             decimal allProfits = 0;
@@ -119,11 +121,7 @@ namespace MainWindow
                     coinProfit = coinStats.Values.First();
                     int coinAmount = coinStats.Keys.First();
 
-                    strBuild.AppendLine("<code>1 " + coin.ToUpper() + " = " + GetDailyPrice(coin)["USD"] + "$ (Profit: " + Math.Round(coinProfit, 2) + "$/" + Core.USD2EUR(coinProfit) + "€) (" + coinAmount + coin.ToUpper() + ")</code>");
-                }
-                else
-                {
-                    //strBuild.AppendLine("<code>1 " + coin.ToUpper() + " = " + GetDailyPrice(coin)["USD"] + "$ (Profit: 0,00$/0,00€) (0 " + coin.ToUpper() + ")</code>");
+                    strBuild.AppendLine("<code>1 " + coin.ToUpper() + " = " + GetDailyPrice(coin)["USD"] + "$ (" + coinAmount + " " + coin.ToUpper() + " = " + Math.Round(coinProfit, 2) + "$/" + Core.USD2EUR(coinProfit) + "€)</code>");
                 }
                 allProfits += coinProfit;
             }
@@ -149,34 +147,41 @@ namespace MainWindow
         }
         private void AddInvest()
         {
+
             long chatID = chat.Id;
             int userID = user._user.Id;
-
-            if (param.Count > 0)
+            try
             {
-                decimal amount = decimal.Parse(param[0]);
-                if (DBController.EntryExist("SELECT * FROM invest WHERE userID = '" + userID + "' LIMIT 1"))
+                if (param.Count > 0)
                 {
-                    SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM invest WHERE userID = '" + userID + "'");
-                    foreach (DbDataRecord row in reader)
+                    decimal amount = decimal.Parse(param[0]);
+                    if (DBController.EntryExist("SELECT * FROM invest WHERE userID = '" + userID + "' LIMIT 1"))
                     {
-                        amount += decimal.Parse(row["amount"].ToString());
-                    }
+                        SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM invest WHERE userID = '" + userID + "'");
+                        foreach (DbDataRecord row in reader)
+                        {
+                            amount += decimal.Parse(row["amount"].ToString());
+                        }
 
-                    DBController.ExecuteQuery("UPDATE invest SET amount = '" + Math.Round(amount, 2) + "' WHERE userID = '" + userID + "'");
+                        DBController.ExecuteQuery("UPDATE invest SET amount = '" + Math.Round(amount, 2) + "' WHERE userID = '" + userID + "'");
+                    }
+                    else
+                    {
+                        DBController.ExecuteQuery("INSERT INTO invest (userID, amount) VALUES ('" + userID + "', '" + Math.Round(amount, 2) + "')");
+                    }
+                    SendMessageHTML(chatID, "Added investment of " + Math.Round(amount, 2) + "€");
+
                 }
                 else
                 {
-                    DBController.ExecuteQuery("INSERT INTO invest (userID, amount) VALUES ('" + userID + "', '" + Math.Round(amount, 2) + "')");
+                    SendMessageHTML(chatID, "Missing amount (Add invest by typing '/invest AMOUNT' in €)");
                 }
-                SendMessageHTML(chatID, "Added investment of " + Math.Round(amount, 2) + "€");
-
             }
-            else
+            catch
             {
-                SendMessageHTML(chatID, "Missing amount (Add invest by typing '/invest AMOUNT' in €)");
-
+                SendMessageHTML(chatID, "Correct use (Add invest by typing '/invest AMOUNT' in €)");
             }
+
         }
         private Dictionary<int, decimal> SumCoin(string symbol, int userID)
         {
@@ -190,10 +195,6 @@ namespace MainWindow
                 int amount = 0;
                 foreach (DbDataRecord row in reader)
                 {
-                    //decimal oldTotalUSD = decimal.Parse(row["amount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
-                    //decimal newTotalUSD = decimal.Parse(row["amount"].ToString()) * usd;
-                    //decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
-
                     sumUSD += (decimal.Parse(row["amount"].ToString()) * coinPrice) * ethUSD;
                     amount += int.Parse(row["amount"].ToString());
                 }
@@ -202,25 +203,10 @@ namespace MainWindow
             }
             return null;
         }
-
-        private void GetXRPChart()
+        private void ManageCoins(string symbol)
         {
-            ManageCoins("XRP", chat.Id, user._user.Id);
-        }
-        private void GetTRXChart()
-        {
-            ManageCoins("TRX", chat.Id, user._user.Id);
-        }
-        private void GetADAChart()
-        {
-            ManageCoins("ADA", chat.Id, user._user.Id);
-        }
-        private void GetXLMChart()
-        {
-            ManageCoins("XLM", chat.Id, user._user.Id);
-        }
-        private void ManageCoins(string symbol, long chatID, int userID)
-        {
+            long chatID = chat.Id;
+            int userID = user._user.Id;
             try
             {
                 if (param.Count > 1)
@@ -231,17 +217,6 @@ namespace MainWindow
                     {
                         case "add":
                         case "buy":
-                            //decimal buyChart = 0;
-                            //if (param.Count > 2)
-                            //{
-                            //    buyChart = decimal.Parse(param[2].ToString().Replace(".", ","));
-                            //}
-                            //else
-                            //{
-                            //    buyChart = GetDailyPrice(symbol)["USD"];
-                            //}
-
-                            //DBController.ExecuteQuery("INSERT INTO " + symbol.ToLower() + "(userID, amount, usdTicker, timestamp) VALUES ('" + user._user.Id + "', '" + coinAmount + "', '" + buyChart.ToString().Replace(",", ".") + "', '" + Core.DateTimeToUnixTime() + "')");
                             if (!DBController.EntryExist("SELECT * FROM " + symbol + " WHERE userID = '" + userID + "' LIMIT 1"))
                             {
                                 DBController.ExecuteQuery("INSERT INTO " + symbol.ToLower() + "(userID, amount) VALUES ('" + userID + "', '" + coinAmount + "')");
@@ -263,7 +238,6 @@ namespace MainWindow
                             }
                             SendMessageHTML(chatID, "Done.");
                             break;
-
                         case "remove":
                         case "sell":
                             SQLiteDataReader readerDel = DBController.ReturnQuery("SELECT * FROM " + symbol + " WHERE userID = '" + userID + "'");
@@ -276,7 +250,7 @@ namespace MainWindow
                                 }
                                 sumCoins += int.Parse(row["amount"].ToString());
                             }
-                            coinAmount -= sumCoins;
+                            coinAmount = sumCoins - coinAmount;
                             if (coinAmount > 0)
                             {
                                 DBController.ExecuteQuery("UPDATE " + symbol.ToLower() + " SET amount = '" + coinAmount + "' WHERE userID = '" + userID + "'");
@@ -291,36 +265,7 @@ namespace MainWindow
                 }
                 else
                 {
-
-                    //Dictionary<string, decimal> CoinPrice = GetDailyPrice(symbol);
-                    //decimal usd = CoinPrice["USD"];
-
-                    //StringBuilder strBuild = new StringBuilder().AppendLine("<code>1 " + symbol.ToUpper() + " = " + usd + "$</code>");
-                    //if (DBController.EntryExist("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "' LIMIT 1"))
-                    //{
-                    //    strBuild.AppendLine("");
-                    //    SQLiteDataReader reader = DBController.ReturnQuery("SELECT * FROM " + symbol + " WHERE userID = '" + user._user.Id + "'");
-                    //    int history = 0;
-                    //    decimal sumUSD = 0;
-                    //    decimal sumEUR = 0;
-                    //    foreach (DbDataRecord row in reader)
-                    //    {
-                    //        history++;
-                    //        decimal oldTotalUSD = decimal.Parse(row["amount"].ToString()) * decimal.Parse(row["usdTicker"].ToString());
-                    //        decimal newTotalUSD = decimal.Parse(row["amount"].ToString()) * usd;
-
-                    //        decimal difference = Math.Round(newTotalUSD - oldTotalUSD, 2);
-                    //        decimal differenceEUR = Core.USD2EUR(newTotalUSD - oldTotalUSD);
-
-                    //        sumUSD += difference;
-                    //        sumEUR += differenceEUR;
-                    //        strBuild.AppendLine("<code>[" + Core.UnixTimeStampToDateTime(double.Parse(row["timestamp"].ToString())).ToString("d.M.yy HH:mm") + "] " + row["amount"] + " " + symbol.ToUpper() + " (" + row["usdTicker"].ToString() + "$) => " + difference + "$ (" + differenceEUR + "€) Profit</code>");
-                    //    }
-
-                    //    strBuild.AppendLine("");
-                    //    strBuild.AppendLine("<code>Total Profit: " + Math.Round(sumUSD, 2) + "$ (" + sumEUR + "€)</code>");
-                    //}
-                    SendMessageHTML(chat.Id, "<code>Missing method, please use one of the following commands:" + Environment.NewLine + "/buy " + symbol.ToLower() + " AMOUNT" + Environment.NewLine + "/sell " + symbol.ToLower() + " AMOUNT</code>");
+                    SendMessageHTML(chat.Id, "<code>Missing method, please use one of the following commands:" + Environment.NewLine + "/" + symbol.ToLower() + " buy AMOUNT" + Environment.NewLine + "/" + symbol.ToLower() + " sell AMOUNT</code>");
                 }
             }
             catch
@@ -590,15 +535,6 @@ namespace MainWindow
                 SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
                 Console.WriteLine();
                 return;
-                //if (ort == "")
-                //{
-                //    SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
-                //}
-                //else
-                //{
-                //    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
-                //}
-
             }
         }
         private void RegisterChat()
@@ -704,17 +640,6 @@ namespace MainWindow
 
                         param = message.Text.ToString().Split(' ').ToList();
                         param.RemoveAt(0);
-
-                        //if (param.Count > 0)
-                        //{
-                        //    if (param[0].ToLower() == "help")
-                        //    {
-                        //        string helpMSG = cController.GetHelp(parseCommand.Remove(0, 1));
-                        //        SendMessageHTML(user._user.Id, "<code>Hilfe für den Befehl: " + parseCommand.Remove(0, 1) + "</code>" + Environment.NewLine + helpMSG);
-                        //        return;
-                        //    }
-                        //}
-
                         cController.HandleCommand(parseCommand.Remove(0, 1));
                     }
                 }
