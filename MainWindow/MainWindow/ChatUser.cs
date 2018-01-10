@@ -48,9 +48,10 @@ namespace MainWindow
                 return AllUser[user.Id];
             }
 
-            AllUser.Add(user.Id, new ChatUser(user));
+            ChatUser chatUser = new ChatUser(user);
+            AllUser.Add(user.Id, chatUser);
 
-            return AllUser[user.Id];
+            return chatUser;
         }
         public bool OnMessageReceived(string msg)
         {
