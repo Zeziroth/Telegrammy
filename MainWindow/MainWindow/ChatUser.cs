@@ -30,7 +30,7 @@ namespace MainWindow
         {
             DateTime now = DateTime.Now;
             TimeSpan diff = now.Subtract(LastMessageTime);
-            if (diff.Seconds > Settings.SPAM_SECONDS)
+            if (diff.Seconds >= Settings.SPAM_SECONDS)
             {
                 return false;
             }
