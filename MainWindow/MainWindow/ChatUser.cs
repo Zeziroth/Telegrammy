@@ -11,7 +11,7 @@ namespace MainWindow
         public Telegram.Bot.Types.User _user { get; set; }
         public Stopwatch Timer { get; set; }
         public DateTime LastMessageTime { get; set; }
-        public string LastMessage { get;  set; }
+        public string LastMessage { get; set; }
         public ChatUser() { }
 
         private ChatUser(Telegram.Bot.Types.User user)
@@ -19,7 +19,8 @@ namespace MainWindow
             Timer = new Stopwatch();
             _user = user;
             LastMessage = "";
-            
+            LastMessageTime = DateTime.Now.AddSeconds((Settings.SPAM_SECONDS + 1) * -1);
+
         }
         public string Username()
         {
