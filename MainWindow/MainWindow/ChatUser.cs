@@ -11,7 +11,7 @@ namespace MainWindow
         public Telegram.Bot.Types.User _user { get; set; }
         public Stopwatch Timer { get; set; }
         public DateTime LastMessageTime { get; set; }
-        public string LastMessage { get;  set; }
+        public string LastMessage { get; set; }
         public ChatUser() { }
 
         private ChatUser(Telegram.Bot.Types.User user)
@@ -19,7 +19,8 @@ namespace MainWindow
             Timer = new Stopwatch();
             _user = user;
             LastMessage = "";
-            
+            LastMessageTime = DateTime.Now.AddSeconds((Settings.SPAM_SECONDS + 1) * -1);
+
         }
         public string Username()
         {
@@ -30,7 +31,7 @@ namespace MainWindow
         {
             DateTime now = DateTime.Now;
             TimeSpan diff = now.Subtract(LastMessageTime);
-            if (diff.Seconds > Settings.SPAM_SECONDS)
+            if (diff.Seconds >= Settings.SPAM_SECONDS)
             {
                 return false;
             }
@@ -48,9 +49,10 @@ namespace MainWindow
                 return AllUser[user.Id];
             }
 
-            AllUser.Add(user.Id, new ChatUser(user));
+            ChatUser chatUser = new ChatUser(user);
+            AllUser.Add(user.Id, chatUser);
 
-            return AllUser[user.Id];
+            return chatUser;
         }
         public bool OnMessageReceived(string msg)
         {
