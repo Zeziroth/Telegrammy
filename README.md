@@ -10,5 +10,5 @@ Ein TelegramBot, der Allerweltsdinge erledigt
 - JingJai-Food Lookup
 - Cryptoin Lookup / Manager  
 (Speichere deine Coin Käufe/Verkäufe und lass dir deinen Profit berechnen, nach dem aktuellen Kursen)  
-Supported: xrp, ada, trx, xlm
+Supported: xrp, ada, trx, xlm, iota
 - Polizeibericht Lookup (Einfach eine Stadt eingeben, und schon siehst du den aktuellsten Bericht der Polizei über diese Stadt)
