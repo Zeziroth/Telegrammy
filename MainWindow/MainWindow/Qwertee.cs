@@ -27,17 +27,14 @@ namespace MainWindow
 
             if (newTeeInterval == DateTime.MinValue)
             {
-                int i = 1 + 1;
                 newTeeInterval = finalTime.AddSeconds(10);
             }
             else if(finalTime > newTeeInterval)
             {
-                int ii = 1 + 1;
                 newTeeInterval = finalTime.AddSeconds(10);
             }
             else
             {
-                int iii = 1 + 1;
                 return currentTees;
             }
             currentTees.Clear();
@@ -52,7 +49,7 @@ namespace MainWindow
                 string price = masterTee.GetAttributeValue("data-tee-price-eur", "");
                 string picture = HTMLAgility.GetElementsByTagName(teeNode, "source")[0].GetAttributeValue("srcset", "");
 
-                if (currentTees.Where(t => t.title == title).Count() == 0)
+                if (currentTees.Count < 3 && currentTees.Where(t => t.title == title).Count() == 0)
                 {
                     currentTees.Add(new Tee(title, price, picture));
                 }
