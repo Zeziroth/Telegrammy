@@ -60,6 +60,8 @@ namespace MainWindow
         }
         private void InitCommands()
         {
+            commands.Add(new List<string>() { "qwertee" }, new Dictionary<string, Action>() { { "Zeigt dir die aktuellen 3 Tees an.", ShowTees } });
+
             commands.Add(new List<string>() { "xrp" }, new Dictionary<string, Action>() { { "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", () => ManageCoins("XRP") } });
             commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", () => ManageCoins("TRX") } });
             commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", () => ManageCoins("ADA") } });
@@ -103,6 +105,19 @@ namespace MainWindow
         {
             return value.ToString("yyyyMMddHHmmssffff");
         }
+
+        private void ShowTees()
+        {
+            long chatID = chat.Id;
+
+            List<Tee> tees = Qwertee.LatestTees();
+            foreach (Tee tee in tees)
+            {
+                _bot.SendPhotoAsync(chatID, new FileToSend(tee.img), tee.title + " (" + tee.price +  "€) - https://qwertee.com/", true);
+                System.Threading.Thread.Sleep(1000);
+            }
+        }
+
         private void GetAllProfit()
         {
             long chatID = chat.Id;

@@ -35,20 +35,20 @@ namespace MainWindow
 
                 foreach (HtmlDocument doc in _sourcePages)
                 {
-                    List<HtmlNode> bigContainer = GetDivsByClass(doc.DocumentNode, "grid-container");
+                    List<HtmlNode> bigContainer = HTMLAgility.GetDivsByClass(doc.DocumentNode, "grid-container");
                     HtmlNode mainContainer = bigContainer[0];
 
-                    IEnumerable<HtmlNode> articles = GetElementsByTagName(doc.DocumentNode, "article");
+                    IEnumerable<HtmlNode> articles = HTMLAgility.GetElementsByTagName(doc.DocumentNode, "article");
 
 
                     foreach (HtmlNode article in articles)
                     {
                         if (articleNum == i)
                         {
-                            string timestamp = GetElementsByClass(article, "span", "news-date sans")[0].InnerText;
-                            HtmlNode headlineNode = GetElementsByClass(article, "h2", "news-headline news-headline-clamp")[0];
-                            string headline = GetElementsByTagName(headlineNode, "span").First().InnerText;
-                            string desc = GetDivByClass(article, "news-bodycopy").InnerText;
+                            string timestamp = HTMLAgility. GetElementsByClass(article, "span", "news-date sans")[0].InnerText;
+                            HtmlNode headlineNode = HTMLAgility.GetElementsByClass(article, "h2", "news-headline news-headline-clamp")[0];
+                            string headline = HTMLAgility.GetElementsByTagName(headlineNode, "span").First().InnerText;
+                            string desc = HTMLAgility.GetDivByClass(article, "news-bodycopy").InnerText;
                             string hrefLink = article.Attributes["data-url"].Value;
                             return "<code>[" + timestamp.Split(' ')[0] + "] " + headline + "</code>" + Environment.NewLine + Environment.NewLine + desc + Environment.NewLine + "<a href=\"https://www.presseportal.de/" + hrefLink + "\">Weiterlesen..</a>";
                         }
@@ -63,52 +63,6 @@ namespace MainWindow
                 return "<code>Presseinformationen konnte nicht geladen werden!</code>";
             }
         }
-        public static IEnumerable<HtmlNode> GetElementsByTagName(HtmlNode parent, string name)
-        {
-            return parent.Descendants(name);
-        }
-        private static HtmlNode GetDivByClass(HtmlNode docNode, string className)
-        {
-            IEnumerable<HtmlNode> newNodes = GetElementsByTagName(docNode, "div");
 
-            foreach (HtmlNode node in newNodes)
-            {
-                if (node.Attributes.Contains("class") && node.Attributes["class"].Value == className)
-                {
-                    return node;
-                }
-            }
-
-            return null;
-        }
-        private static List<HtmlNode> GetElementsByClass(HtmlNode docNode, string elmName, string className)
-        {
-            IEnumerable<HtmlNode> newNodes = GetElementsByTagName(docNode, elmName);
-
-            List<HtmlNode> outputNodes = new List<HtmlNode>();
-            foreach (HtmlNode node in newNodes)
-            {
-                if (node.Attributes.Contains("class") && node.Attributes["class"].Value == className)
-                {
-                    outputNodes.Add(node);
-                }
-            }
-
-            return outputNodes;
-        }
-        private static List<HtmlNode> GetDivsByClass(HtmlNode docNode, string className)
-        {
-            IEnumerable<HtmlNode> newNodes = GetElementsByTagName(docNode, "div");
-            List<HtmlNode> outputNodes = new List<HtmlNode>();
-            foreach (HtmlNode node in newNodes)
-            {
-                if (node.Attributes.Contains("class") && node.Attributes["class"].Value == className)
-                {
-                    outputNodes.Add(node);
-                }
-            }
-
-            return outputNodes;
-        }
     }
 }
