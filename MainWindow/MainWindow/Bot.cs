@@ -67,8 +67,10 @@ namespace MainWindow
             commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", () => ManageCoins("ADA") } });
             commands.Add(new List<string>() { "iota" }, new Dictionary<string, Action>() { { "Beispiel: /iota buy 90, /iota sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an IOTA mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/iota' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an IOTA aus ihrem Bestand entfernt.", () => ManageCoins("IOTA") } });
             commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", () => ManageCoins("XLM") } });
+            commands.Add(new List<string>() { "npxs" }, new Dictionary<string, Action>() { { "Beispiel: /npxs buy 90, /npxs sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/npxs' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Pundi X aus ihrem Bestand entfernt.", () => ManageCoins("NPXS") } });
+            commands.Add(new List<string>() { "hot" }, new Dictionary<string, Action>() { { "Beispiel: /hot buy 90, /npxs sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/hot' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an HOLO aus ihrem Bestand entfernt.", () => ManageCoins("HOT") } });
 
-            commands.Add(new List<string>() { "coins", "coin", "profit" }, new Dictionary<string, Action>() { { "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit } });
+            commands.Add(new List<string>() { "coins", "coin", "profit", "balance" }, new Dictionary<string, Action>() { { "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit } });
             commands.Add(new List<string>() { "invest" }, new Dictionary<string, Action>() { { "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest } });
             commands.Add(new List<string>() { "supported", "supportedcoin", "supportedcoins" }, new Dictionary<string, Action>() { { "Zeigt eine Liste aller vom Bot unterstützten Cryptocoins an.", ShowSupportedCoins } });
 
@@ -154,6 +156,7 @@ namespace MainWindow
                     invest += decimal.Parse(row["amount"].ToString());
                 }
                 allProfits -= Core.EUR2USD(invest);
+                strBuild.AppendLine("<code>Total Invest: " + Math.Round(Core.EUR2USD(invest), 2) + "$ (" + invest + "€)</code>");
                 strBuild.AppendLine("<code>Total Profits: " + Math.Round(allProfits, 2) + "$ (" + Core.USD2EUR(allProfits) + "€)</code>");
 
                 SendMessageHTML(chatID, strBuild.ToString());
@@ -314,7 +317,7 @@ namespace MainWindow
                 BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
 
                 BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
-                decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 2);
+                decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 5);
                 return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
             }
             catch

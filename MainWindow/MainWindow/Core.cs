@@ -47,7 +47,7 @@ namespace MainWindow
 
         private static decimal GetEURUSD()
         {
-            string chart = HTTPRequester.SimpleRequest("https://api.fixer.io/latest?symbols=EUR,USD");
+            string chart = HTTPRequester.SimpleRequest("http://data.fixer.io/api/latest?access_key=" + Settings.FIXER_IO_API_KEY + "&symbols=EUR,USD");
             dynamic chartJson = JObject.Parse(chart);
             return chartJson.rates.USD;
         }

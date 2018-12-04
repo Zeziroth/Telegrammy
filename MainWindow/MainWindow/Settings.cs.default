@@ -5,6 +5,7 @@ namespace MainWindow
     public class Settings
     {
         internal static readonly string API_KEY = "";
+		internal static readonly string FIXER_IO_API_KEY = "";
         internal static readonly List<int> ADMINS = new List<int>() { };
         internal static readonly int SPAM_SECONDS = 1;
         internal static bool ignoreInput = true;
