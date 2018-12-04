@@ -1,0 +1,13 @@
+﻿using System.Collections.Generic;
+
+namespace MainWindow
+{
+    public class Settings
+    {
+        internal static readonly string API_KEY = "";
+        internal static readonly List<int> ADMINS = new List<int>() {  };
+        internal static readonly int SPAM_SECONDS = 1;
+        internal static bool ignoreInput = true;
+        internal static List<string> supportedCoins = new List<string>() { "xrp", "ada", "trx", "xlm", "iota" };
+    }
+}
