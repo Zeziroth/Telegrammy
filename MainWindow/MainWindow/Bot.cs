@@ -127,6 +127,7 @@ namespace MainWindow
             StringBuilder strBuild = new StringBuilder();
             decimal allProfits = 0;
 
+            
             foreach (string coin in Settings.supportedCoins)
             {
                 Dictionary<int, decimal> coinStats = SumCoin(coin, userID);
@@ -135,8 +136,10 @@ namespace MainWindow
                 {
                     coinProfit = coinStats.Values.First();
                     int coinAmount = coinStats.Keys.First();
-
-                    strBuild.AppendLine("<code>1 " + coin.ToUpper() + " = " + GetDailyPrice(coin)["USD"] + "$ (" + coinAmount + " " + coin.ToUpper() + " = " + Math.Round(coinProfit, 2) + "$/" + Core.USD2EUR(coinProfit) + "€)</code>");
+                    Dictionary<string, decimal> profits = GetDailyPrice(coin);
+                    decimal usdDailyPrice = profits["USD"];
+                    decimal eurProfit = Core.USD2EUR(coinProfit);
+                    strBuild.AppendLine("<code>1 " + coin.ToUpper() + " = " + usdDailyPrice + "$ (" + coinAmount + " " + coin.ToUpper() + " = " + Math.Round(coinProfit, 2) + "$/" + eurProfit + "€)</code>");
                 }
                 allProfits += coinProfit;
             }
