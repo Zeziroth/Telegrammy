@@ -155,6 +155,8 @@ namespace MainWindow
                 {
                     invest += decimal.Parse(row["amount"].ToString());
                 }
+                
+                strBuild.AppendLine("<code>Total Balance: " + Math.Round(allProfits, 2) + "$ (" + Core.USD2EUR(allProfits) + "€)</code>");
                 allProfits -= Core.EUR2USD(invest);
                 strBuild.AppendLine("<code>Total Invest: " + Math.Round(Core.EUR2USD(invest), 2) + "$ (" + invest + "€)</code>");
                 strBuild.AppendLine("<code>Total Profits: " + Math.Round(allProfits, 2) + "$ (" + Core.USD2EUR(allProfits) + "€)</code>");
