@@ -10,6 +10,7 @@ namespace MainWindow
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(url);
+                
                 if (cookieCon != null)
                 {
                     request.CookieContainer = cookieCon;
@@ -17,7 +18,7 @@ namespace MainWindow
 
                 var response = (HttpWebResponse)request.GetResponse();
 
-                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                var responseString = new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd();
                 return responseString;
             }
             catch
@@ -46,7 +47,7 @@ namespace MainWindow
 
             var response = (HttpWebResponse)request.GetResponse();
 
-            var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+            var responseString = new StreamReader(response.GetResponseStream(), Encoding.UTF8).ReadToEnd();
             return responseString;
         }
     }

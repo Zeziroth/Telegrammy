@@ -425,8 +425,8 @@ namespace MainWindow
                     {
                         return;
                     }
-                    string response = HTTPRequester.SimpleRequest("http://www.jing-jai-bremen.de/mittagstisch/");
-                    string mainContent = TextHelper.StringBetweenStrings(response, @"<div id=""content_area"">", @"</p> </div>");
+                    string response = HTTPRequester.SimpleRequest("https://www.jing-jai-bremen.de/mittagstisch/");
+                    string mainContent = TextHelper.StringBetweenStrings(response, @"<div id=""content_area"">", @"</p> </div>").Replace("  ", "").Replace(" ", "");
                     string[] lines = mainContent.Split(new string[] { "</p>" }, StringSplitOptions.None);
 
                     bool innerDay = false;
@@ -436,9 +436,9 @@ namespace MainWindow
                     {
                         if (!innerDay)
                         {
-                            if (line.TrimStart().StartsWith(@"<p><strong><span style=""background:yellow;"">"))
+                            if (line.TrimStart().StartsWith(@"<p><spanstyle=""background:aqua;"">"))
                             {
-                                string day = TextHelper.StringBetweenStrings(line, @"<span style=""font-size:12.0pt;"">", "</span>");
+                                string day = TextHelper.StringBetweenStrings(line, @"<spanstyle=""font-size:10.0pt;"">", "</span>");
 
                                 switch (day.ToLower())
                                 {
@@ -461,32 +461,33 @@ namespace MainWindow
                                 if (day.ToLower() == chosenDay.ToLower())
                                 {
                                     innerDay = true;
-                                    string title = TextHelper.StringBetweenStrings(line, @"<span style=""background:aqua;"">", "</span>").Replace("`", "").Replace("´", "");
+                                    string title = TextHelper.StringBetweenStrings(line, @"<spanstyle=""background:yellow;"">", "</span>").Replace("`", "").Replace("´", "");
                                     curDay = new JingJai(day, title);
                                 }
 
                             }
                         }
-                        else if (line.TrimStart().StartsWith(@"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">"))
+                        else if (line.TrimStart().StartsWith(@"<p><spanstyle=""font-family:erasbolditc,sans-serif;""><spanstyle=""font-size:10.0pt;"">"))
                         {
 
-                            string desc = TextHelper.StringBetweenStrings(line, @"<p><strong><span style=""font-family:eras bold itc,sans-serif;""><span style=""font-size:12.0pt;"">", "").Replace("  ", "");
+                            string desc = TextHelper.StringBetweenStrings(line, @"<p><spanstyle=""font-family:erasbolditc,sans-serif;""><spanstyle=""font-size:10.0pt;"">", "").Replace("  ", "");
                             desc = desc.Replace(Environment.NewLine, String.Empty);
-                            desc = Regex.Replace(desc, @"<span style=""color:red;""><sup>[a-z]</sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<spanstyle=""color:red;""><sup>[a-z]</sup>", String.Empty);
                             desc = Regex.Replace(desc, @"<sup>[a-z]", String.Empty);
 
 
                             desc = Regex.Replace(desc, @"<sup><span style=""color:red;"">[a-z]</span></sup>", String.Empty);
-                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]</span></sup>", String.Empty);
-                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]</span>", String.Empty);
-                            desc = Regex.Replace(desc, @"<span style=""color:red;"">[a-z]", String.Empty);
+                            desc = Regex.Replace(desc, @"<spanstyle=""color:red;"">[a-z]</span></sup>", String.Empty);
+                            desc = Regex.Replace(desc, @"<spanstyle=""color:red;"">[a-z]</span>", String.Empty);
+                            desc = Regex.Replace(desc, @"<spanstyle=""color:red;"">[a-z]", String.Empty);
                             desc = Regex.Replace(desc, @"<[a-z]*>(.*?)<\/[a-z]*>", String.Empty);
                             desc = Regex.Replace(desc, @"<[a-z]*>", String.Empty);
                             desc = Regex.Replace(desc, @"<\/[a-z]*>", String.Empty);
                             desc = desc.Replace("€", String.Empty);
+
                             if (desc.Contains("color:red;"))
                             {
-                                desc = Regex.Replace(desc, @"<span style=""color:red;"">.*", String.Empty);
+                                desc = Regex.Replace(desc, @"<spanstyle=""color:red;"">.*", String.Empty);
                                 curDay.AddDesc(desc);
                                 innerDay = false;
                                 allDays.Add(curDay);
@@ -503,7 +504,7 @@ namespace MainWindow
                     {
                         if (day.day.ToLower() == chosenDay.ToLower())
                         {
-                            SendMessageHTML(chat.Id, "<code>Am " + day.day + " gibt es bei Jing-Jai</code>" + Environment.NewLine + "<b>" + day.title.TrimStart() + "</b>" + Environment.NewLine + Environment.NewLine + day.desc.Replace(" ", "").TrimStart());
+                            SendMessageHTML(chat.Id, "<code>Am " + day.day + " gibt es bei Jing-Jai</code>" + Environment.NewLine + "<b>" + day.title.TrimStart() + "</b>" + Environment.NewLine + Environment.NewLine + "Zutaten: " + Environment.NewLine + day.desc.Replace(" ", "").TrimStart());
                             return;
                         }
                     }
@@ -511,6 +512,10 @@ namespace MainWindow
                 }
                 catch { }
             }
+        }
+        public static string StripHTML(string input)
+        {
+            return Regex.Replace(input, "<.*?>", String.Empty);
         }
         private void Random()
         {
