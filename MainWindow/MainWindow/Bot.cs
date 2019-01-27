@@ -60,34 +60,44 @@ namespace MainWindow
         }
         private void InitCommands()
         {
-            commands.Add(new List<string>() { "qwertee" }, new Dictionary<string, Action>() { { "Zeigt dir die aktuellen 3 Tees an.", ShowTees } });
 
-            commands.Add(new List<string>() { "xrp" }, new Dictionary<string, Action>() { { "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", () => ManageCoins("XRP") } });
-            commands.Add(new List<string>() { "trx" }, new Dictionary<string, Action>() { { "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", () => ManageCoins("TRX") } });
-            commands.Add(new List<string>() { "ada" }, new Dictionary<string, Action>() { { "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", () => ManageCoins("ADA") } });
-            commands.Add(new List<string>() { "iota" }, new Dictionary<string, Action>() { { "Beispiel: /iota buy 90, /iota sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an IOTA mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/iota' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an IOTA aus ihrem Bestand entfernt.", () => ManageCoins("IOTA") } });
-            commands.Add(new List<string>() { "xlm" }, new Dictionary<string, Action>() { { "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", () => ManageCoins("XLM") } });
-            commands.Add(new List<string>() { "npxs" }, new Dictionary<string, Action>() { { "Beispiel: /npxs buy 90, /npxs sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/npxs' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Pundi X aus ihrem Bestand entfernt.", () => ManageCoins("NPXS") } });
-            commands.Add(new List<string>() { "hot" }, new Dictionary<string, Action>() { { "Beispiel: /hot buy 90, /npxs sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/hot' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an HOLO aus ihrem Bestand entfernt.", () => ManageCoins("HOT") } });
+            InitSingleCommand("invest", "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest);
+            InitSingleCommand("xrp", "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", ManageCoins("XRP"));
+            InitSingleCommand("trx", "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", ManageCoins("TRX"));
+            InitSingleCommand("ada", "Beispiel: /ada buy 90, /ada sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Cardano mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/ada' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Cardano aus ihrem Bestand entfernt.", ManageCoins("ADA"));
+            InitSingleCommand("iota", "Beispiel: /iota buy 90, /iota sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an IOTA mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/iota' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an IOTA aus ihrem Bestand entfernt.", ShowTManageCoins("IOTA"));
+            InitSingleCommand("xlm", "Beispiel: /xlm buy 90, /xlm sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xlm' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Stellar aus ihrem Bestand entfernt.", ManageCoins("XLM"));
+            InitSingleCommand("npxs", "Beispiel: /npxs buy 90, /npxs sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/npxs' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Pundi X aus ihrem Bestand entfernt.", ManageCoins("NPXS"));
+            InitSingleCommand("hot", "Beispiel: /hot buy 90, /npxs sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Stellar mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/hot' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an HOLO aus ihrem Bestand entfernt.", ManageCoins("HOT"));
+            InitSingleCommand(new string() { "coins", "coin", "profit", "balance" }, "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit);
+            InitSingleCommand(new string() { "supported", "supportedcoin", "supportedcoins" }, "Zeigt eine Liste aller vom Bot unterstützten Cryptocoins an.", ShowSupportedCoins);
 
-            commands.Add(new List<string>() { "coins", "coin", "profit", "balance" }, new Dictionary<string, Action>() { { "Gibt den Profit für alle vom Bot unterstützten Coins aus.", GetAllProfit } });
-            commands.Add(new List<string>() { "invest" }, new Dictionary<string, Action>() { { "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest } });
-            commands.Add(new List<string>() { "supported", "supportedcoin", "supportedcoins" }, new Dictionary<string, Action>() { { "Zeigt eine Liste aller vom Bot unterstützten Cryptocoins an.", ShowSupportedCoins } });
+            InitSingleCommand("roulette", "Eröffnet bzw. nimmt an einem neuen Roulettespiel teil.", RouletteHandler);
+            InitSingleCommand(new string() { "shoot", "shot" }, "Wenn du in einem Roulettespiel bist, kannst du hiermit deinen Schuss tätigen.", ShootHandler);
+            InitSingleCommand(new string() { "abort", "cancel", "bittestophabibi" }, "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette);
 
-
-            commands.Add(new List<string>() { "rtd", "dice", "rool", "random" }, new Dictionary<string, Action>() { { "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random } });
-            commands.Add(new List<string>() { "dhl" }, new Dictionary<string, Action>() { { "DHL Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /dhl JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des DHL-Paket zurück.", DHLTrack } });
-            commands.Add(new List<string>() { "jing" }, new Dictionary<string, Action>() { { "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai } });
-            commands.Add(new List<string>() { "police", "polizei", "pol" }, new Dictionary<string, Action>() { { "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews } });
-            commands.Add(new List<string>() { "hermes" }, new Dictionary<string, Action>() { { "Hermes Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /hermes JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des Hermes-Paket zurück.", HermesTrack } });
-            commands.Add(new List<string>() { "register" }, new Dictionary<string, Action>() { { "Registriert einen Chat permanent beim Bot.", RegisterChat } });
-            commands.Add(new List<string>() { "kawaii" }, new Dictionary<string, Action>() { { "Lass den Bot entscheiden wie Kawaii du wirklich bist." + Environment.NewLine + "Beispiel: /kawaii", KawaiiMeter } });
-            commands.Add(new List<string>() { "roulette" }, new Dictionary<string, Action>() { { "Eröffnet bzw. nimmt an einem neuen Roulettespiel teil.", RouletteHandler } });
-            commands.Add(new List<string>() { "shoot", "shot" }, new Dictionary<string, Action>() { { "Wenn du in einem Roulettespiel bist, kannst du hiermit deinen Schuss tätigen.", ShootHandler } });
-            commands.Add(new List<string>() { "abort", "cancel", "bittestophabibi" }, new Dictionary<string, Action>() { { "Stopt eine vorhandene Rouletterunde (Nur für den Spielersteller)", StopRoulette } });
+            InitSingleCommand("dhl", "DHL Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /dhl JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des DHL-Paket zurück.", DHLTrack);
+            InitSingleCommand("hermes", "Hermes Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /hermes JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des Hermes-Paket zurück.", HermesTrack);
+            
+            InitSingleCommand("qwertee", "Zeigt dir die aktuellen 3 Tees an.", ShowTees);
+            
+            InitSingleCommand(new string() { "rtd", "dice", "rool", "random" }, "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random);
+            InitSingleCommand("kawaii", "Lass den Bot entscheiden wie Kawaii du wirklich bist." + Environment.NewLine + "Beispiel: /kawaii", KawaiiMeter);
+            
+            InitSingleCommand("jing", "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai);
+            InitSingleCommand(new string() { "police", "polizei", "pol" }, "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews);
+            InitSingleCommand("register", "Registriert einen Chat permanent beim Bot.", RegisterChat);
             cController = new CommandController(ref commands);
         }
+        private void InitSingleCommand(params string[] cmd, string description, Action method)
+        {
+            List<string> cmds = new List<string>();
+            commands.Add(ho);
 
+            Dictionary<string, Action> body = new Dictionary<string, Action>(description, method);
+
+            commands.Add(cmds, body);
+        }
         private bool isInnerWeek(string day)
         {
             switch (day.ToLower())
