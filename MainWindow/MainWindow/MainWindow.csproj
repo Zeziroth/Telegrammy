@@ -110,8 +110,8 @@
     <Compile Include="Qwertee.cs" />
     <Compile Include="Revolver.cs" />
     <Compile Include="Roulette.cs" />
-    <None Include="Settings.cs.default" />
     <Compile Include="Settings.cs" />
+    <None Include="Settings.cs.default" />
     <Compile Include="SQLController.cs" />
     <Compile Include="SteamFree.cs" />
     <Compile Include="Tee.cs" />
