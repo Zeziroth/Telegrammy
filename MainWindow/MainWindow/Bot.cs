@@ -60,7 +60,6 @@ namespace MainWindow
         }
         private void InitCommands()
         {
-
             InitSingleCommand(new string[] { "invest" }, "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest);
             InitSingleCommand(new string[] { "xrp" }, "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", () => ManageCoins("XRP"));
             InitSingleCommand(new string[] { "trx" }, "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", () => ManageCoins("TRX"));
@@ -80,6 +79,7 @@ namespace MainWindow
             InitSingleCommand(new string[] { "hermes" }, "Hermes Paketverfolgung durch eingabe der Tracking-ID." + Environment.NewLine + "Beispiel: /hermes JJ123456789005456" + Environment.NewLine + "Beschreibung: Gibt den letzten Status des Hermes-Paket zurück.", HermesTrack);
 
             InitSingleCommand(new string[] { "qwertee" }, "Zeigt dir die aktuellen 3 Tees an.", ShowTees);
+            InitSingleCommand(new string[] { "fakt" }, "Zeigt dir die Wahrheit an.", ShowFact);
 
             InitSingleCommand(new string[] { "rtd", "dice", "rool", "random" }, "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random);
             InitSingleCommand(new string[] { "kawaii" }, "Lass den Bot entscheiden wie Kawaii du wirklich bist." + Environment.NewLine + "Beispiel: /kawaii", KawaiiMeter);
@@ -97,6 +97,11 @@ namespace MainWindow
             Dictionary<string, Action> body = new Dictionary<string, Action>() { { description, method } };
 
             commands.Add(cmds, body);
+        }
+        private void ShowFact()
+        {
+            long chatID = chat.Id;
+            SendMessage(chatID, "Pasquale ist 350€ mehr Wert als Yanniv!");
         }
         private bool isInnerWeek(string day)
         {
@@ -541,17 +546,18 @@ namespace MainWindow
             {
                 string trackingID = param[0];
                 string response = HTTPRequester.SimpleRequest("http://nolp.dhl.de/nextt-online-public/set_identcodes.do?lang=de&idc=" + trackingID);
-                string ort = TextHelper.StringBetweenStrings(response, @"<td data-label=""Ort"">", "</td>");
-                string timestamp = TextHelper.StringBetweenStrings(response, @"<td data-label=""Datum/Uhrzeit"">", "</td>");
-                string status = TextHelper.StringBetweenStrings(response, @"<td data-label=""Status"">", "</td>");
+                //string ort = TextHelper.StringBetweenStrings(response, @"<td data-label=""Ort"">", "</td>");
+                //string timestamp = TextHelper.StringBetweenStrings(response, @"<td data-label=""Datum/Uhrzeit"">", "</td>");
+                //string status = TextHelper.StringBetweenStrings(response, @"<td data-label=""Status"">", "</td>");
+                string status = TextHelper.StringBetweenStrings(response, @"<div>Status: ", "</div>");
 
-                if (ort == "")
+                if (status == "")
                 {
                     SendMessage(chat.Id, "Dein Paket kann zurzeit nicht gefunden werden.");
                 }
                 else
                 {
-                    SendMessage(chat.Id, status + Environment.NewLine + "Ort: " + ort + " (" + timestamp + ")");
+                    SendMessage(chat.Id, status);
                 }
 
             }
