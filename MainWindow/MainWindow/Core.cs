@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.Text.RegularExpressions;
 
 namespace MainWindow
 {
@@ -13,6 +14,29 @@ namespace MainWindow
             result = result | (long)rand.Next((Int32)min, (Int32)max);
             return result;
         }
+        internal static bool isInnerWeek(string day)
+        {
+            switch (day.ToLower())
+            {
+                case "montag":
+                case "dienstag":
+                case "mittwoch":
+                case "donnerstag":
+                case "freitag":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        internal static string StripHTML(string input)
+        {
+            return Regex.Replace(input, "<.*?>", String.Empty);
+        }
+        internal static string GetTimestamp(DateTime value)
+        {
+            return value.ToString("yyyyMMddHHmmssffff");
+        }
+
         internal static int IntRandom(int min, int max)
         {
             Random rand = new Random();

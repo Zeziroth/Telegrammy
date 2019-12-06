@@ -15,6 +15,7 @@ using System.Collections.Specialized;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Threading;
 
 namespace MainWindow
 {
@@ -32,13 +33,57 @@ namespace MainWindow
         private static ChatUser user = null;
         Message message = null;
         private static CommandController cController = null;
+        private static Dictionary<long, decimal> threshold = new Dictionary<long, decimal>();
 
         public Bot(string key)
         {
             InitCommands();
             Start(key);
             Roulette.Init(this);
-            //new SteamFree(-209505282, this); //Insert your Channel-ID
+            //new SteamFree(239192404, this); //Insert your Channel-ID
+            //new Thread(() => { CheckHOT(); }).Start();
+        }
+
+        private void CheckHOT()
+        {
+            while (true)
+            {
+                if (chats != null)
+                {
+                    Dictionary<string, decimal> value = GetDailyPrice("HOT", "BTC", true);
+                    foreach (long tmpChatID in chats.Keys)
+                    {
+                        if (threshold.ContainsKey(tmpChatID))
+                        {
+                            if (value["HOT"] >= threshold[tmpChatID])
+                            {
+                                SendMessage(tmpChatID, value["HOT"].ToString() + " >= Threshold (" + threshold[tmpChatID] + ")");
+                            }
+                        }
+                        else
+                        {
+                            SendMessage(tmpChatID, "No Threshold: " + value["HOT"].ToString());
+                        }
+                    }
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+        private void SetThreshold()
+        {
+            long chatID = chat.Id;
+            if (param.Count > 0)
+            {
+                decimal newThreshold = decimal.Parse(param[0]);
+                if (threshold.ContainsKey(chatID))
+                {
+                    threshold[chatID] = newThreshold;
+                }
+                else
+                {
+                    threshold.Add(chatID, newThreshold);
+                }
+            }
         }
         public void Init()
         {
@@ -60,6 +105,8 @@ namespace MainWindow
         }
         private void InitCommands()
         {
+            InitSingleCommand(new string[] { "threshold" }, "Admin only", SetThreshold);
+
             InitSingleCommand(new string[] { "invest" }, "Fügt der deinem User die gegebene Anzahl (in €) als Invest hinzu.", AddInvest);
             InitSingleCommand(new string[] { "xrp" }, "Beispiel: /xrp buy 90, /xrp sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an Ripple mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/xrp' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an Ripple aus ihrem Bestand entfernt.", () => ManageCoins("XRP"));
             InitSingleCommand(new string[] { "trx" }, "Beispiel: /trx buy 90, /trx sell 90" + Environment.NewLine + "Mit 'buy' wird die angegebene Anzahl an TRON mit dem aktuellen Marktkurs in eine Datenbank eingetragen, damit diese per '/trx' angezeigt werden können." + Environment.NewLine + "Mit 'sell' wird die angegebene Anzahl an TRON aus ihrem Bestand entfernt.", () => ManageCoins("TRX"));
@@ -83,12 +130,28 @@ namespace MainWindow
 
             InitSingleCommand(new string[] { "rtd", "dice", "rool", "random" }, "Gibt eine zufällige Zahl zwischen 2 angegebenen Zahlen zurück." + Environment.NewLine + "Beispiel: /random 1 500" + Environment.NewLine + "Beschreibung: Gibt eine Zahl zwischen '1' und '500' zurück.", Random);
             InitSingleCommand(new string[] { "kawaii" }, "Lass den Bot entscheiden wie Kawaii du wirklich bist." + Environment.NewLine + "Beispiel: /kawaii", KawaiiMeter);
+            InitSingleCommand(new string[] { "bent" }, "Jeder kennt es.. Man hasst Bent so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Bent heute hasst.", BentHate);
+            InitSingleCommand(new string[] { "bryan" }, "Jeder kennt es.. Man hasst Bryan so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Bryan heute hasst.", BryanHate);
+            InitSingleCommand(new string[] { "simon" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", SimonHate);
 
             InitSingleCommand(new string[] { "jing" }, "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai);
             InitSingleCommand(new string[] { "police", "polizei", "pol" }, "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews);
             InitSingleCommand(new string[] { "register" }, "Registriert einen Chat permanent beim Bot.", RegisterChat);
+
+            InitSingleCommand(new string[] { "nsa", "spy" }, "Geheime Funktionen", ExportAllMessages);
             cController = new CommandController(ref commands);
         }
+
+        private void ExportAllMessages()
+        {
+            if (!isAdmin(user._user.Id))
+            {
+                return;
+            }
+
+            
+        }
+
         private void InitSingleCommand(string[] cmd, string description, Action method)
         {
             List<string> cmds = new List<string>();
@@ -103,24 +166,20 @@ namespace MainWindow
             long chatID = chat.Id;
             SendMessage(chatID, "Pasquale ist 350€ mehr Wert als Yanniv!");
         }
-        private bool isInnerWeek(string day)
+        private void BentHate()
         {
-            switch (day.ToLower())
-            {
-                case "montag":
-                case "dienstag":
-                case "mittwoch":
-                case "donnerstag":
-                case "freitag":
-                    return true;
-                default:
-                    return false;
-            }
+            Random rnd = new Random();
+            SendMessage(chat.Id, user.Username() + " hasst Bent heute zu " + rnd.Next(1, 100) + "%");
         }
-
-        public static String GetTimestamp(DateTime value)
+        private void BryanHate()
         {
-            return value.ToString("yyyyMMddHHmmssffff");
+            Random rnd = new Random();
+            SendMessage(chat.Id, user.Username() + " hasst Bryan heute zu " + rnd.Next(1, 100) + "%");
+        }
+        private void SimonHate()
+        {
+            Random rnd = new Random();
+            SendMessage(chat.Id, user.Username() + " hasst Simon heute zu " + rnd.Next(1, 100) + "%");
         }
 
         private void ShowTees()
@@ -325,15 +384,18 @@ namespace MainWindow
                 SendMessageHTML(chat.Id, "Versuche es bitte später erneut.");
             }
         }
-        private Dictionary<string, decimal> GetDailyPrice(string symbol)
+        private Dictionary<string, decimal> GetDailyPrice(string symbol, string oppositeCoin = "ETH", bool onlyCoinValue = false)
         {
             try
             {
                 string jsonChartPlain = HTTPRequester.SimpleRequest("https://www.binance.com/api/v1/ticker/allPrices");
                 List<BinancePair> jsonChart = JsonConvert.DeserializeObject<List<BinancePair>>(jsonChartPlain);
-                BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + "ETH").First();
-
-                BinancePair ethusdt = jsonChart.Where((s) => s.symbol == "ETHUSDT").First();
+                BinancePair coinETH = jsonChart.Where((s) => s.symbol == symbol.ToUpper() + oppositeCoin).First();
+                if (onlyCoinValue)
+                {
+                    return new Dictionary<string, decimal>() { { "HOT", decimal.Parse(coinETH.price.Replace(".", ",")) } };
+                }
+                BinancePair ethusdt = jsonChart.Where((s) => s.symbol == oppositeCoin + "USDT").First();
                 decimal usdTicker = Math.Round((decimal.Parse(coinETH.price.Replace(".", ",")) * decimal.Parse(ethusdt.price.Replace(".", ","))), 5);
                 return new Dictionary<string, decimal>() { { "USD", usdTicker }, { "EUR", Core.USD2EUR(usdTicker) } };
             }
@@ -426,7 +488,7 @@ namespace MainWindow
                             break;
                     }
                     Console.WriteLine(chosenDay);
-                    if (!isInnerWeek(chosenDay))
+                    if (!Core.isInnerWeek(chosenDay))
                     {
                         return;
                     }
@@ -518,10 +580,7 @@ namespace MainWindow
                 catch { }
             }
         }
-        public static string StripHTML(string input)
-        {
-            return Regex.Replace(input, "<.*?>", String.Empty);
-        }
+
         private void Random()
         {
             if (param.Count > 1)
@@ -540,15 +599,13 @@ namespace MainWindow
                 catch { }
             }
         }
+
         private void DHLTrack()
         {
             if (param.Count > 0)
             {
                 string trackingID = param[0];
                 string response = HTTPRequester.SimpleRequest("http://nolp.dhl.de/nextt-online-public/set_identcodes.do?lang=de&idc=" + trackingID);
-                //string ort = TextHelper.StringBetweenStrings(response, @"<td data-label=""Ort"">", "</td>");
-                //string timestamp = TextHelper.StringBetweenStrings(response, @"<td data-label=""Datum/Uhrzeit"">", "</td>");
-                //string status = TextHelper.StringBetweenStrings(response, @"<td data-label=""Status"">", "</td>");
                 string status = TextHelper.StringBetweenStrings(response, @"<div>Status: ", "</div>");
 
                 if (status == "")
@@ -652,11 +709,12 @@ namespace MainWindow
                 gameTable.Abort(user);
             }
         }
-        private async void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        private void OnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
 
             try
             {
+                
                 if (Settings.ignoreInput)
                 {
                     return;
@@ -668,7 +726,6 @@ namespace MainWindow
 
                 from = message.From;
                 chat = message.Chat;
-
 
                 if (message.Text.StartsWith("/"))
                 {
