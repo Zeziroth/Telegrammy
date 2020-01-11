@@ -9,13 +9,12 @@ using Newtonsoft.Json;
 using System.Data.SQLite;
 using System.Data.Common;
 using Telegram.Bot.Types.InlineQueryResults;
-using Telegram.Bot.Types.InlineKeyboardButtons;
 using Telegram.Bot.Types.ReplyMarkups;
-using System.Collections.Specialized;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Threading;
+using Telegram.Bot.Types.InputFiles;
 
 namespace MainWindow
 {
@@ -87,8 +86,8 @@ namespace MainWindow
         }
         public void Init()
         {
-            RefreshChats();
-            RefreshUser();
+            //RefreshChats();
+            //RefreshUser();
         }
         private long LongRandom(long min, long max)
         {
@@ -133,6 +132,8 @@ namespace MainWindow
             InitSingleCommand(new string[] { "bent" }, "Jeder kennt es.. Man hasst Bent so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Bent heute hasst.", BentHate);
             InitSingleCommand(new string[] { "bryan" }, "Jeder kennt es.. Man hasst Bryan so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Bryan heute hasst.", BryanHate);
             InitSingleCommand(new string[] { "simon" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", SimonHate);
+            InitSingleCommand(new string[] { "arne" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", ArneHate);
+            InitSingleCommand(new string[] { "pascal" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", PascalHate);
 
             InitSingleCommand(new string[] { "jing" }, "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai);
             InitSingleCommand(new string[] { "police", "polizei", "pol" }, "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews);
@@ -169,17 +170,27 @@ namespace MainWindow
         private void BentHate()
         {
             Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Bent heute zu " + rnd.Next(1, 100) + "%");
+            SendMessage(chat.Id, user.Username() + " hasst Bent heute zu " + rnd.Next(0, 101) + "%");
         }
         private void BryanHate()
         {
             Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Bryan heute zu " + rnd.Next(1, 100) + "%");
+            SendMessage(chat.Id, user.Username() + " hasst Bryan heute zu " + rnd.Next(0, 101) + "%");
         }
         private void SimonHate()
         {
             Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Simon heute zu " + rnd.Next(1, 100) + "%");
+            SendMessage(chat.Id, user.Username() + " hasst Simon heute zu " + rnd.Next(0, 101) + "%");
+        }
+        private void ArneHate()
+        {
+            Random rnd = new Random();
+            SendMessage(chat.Id, user.Username() + " hasst Arne heute zu " + rnd.Next(0, 101) + "%");
+        }
+        private void PascalHate()
+        {
+            Random rnd = new Random();
+            SendMessage(chat.Id, user.Username() + " hasst Pascal heute zu " + rnd.Next(0, 101) + "%");
         }
 
         private void ShowTees()
@@ -189,7 +200,7 @@ namespace MainWindow
             List<Tee> tees = Qwertee.LatestTees();
             foreach (Tee tee in tees)
             {
-                _bot.SendPhotoAsync(chatID, new FileToSend(tee.img), tee.title + " (" + tee.price + "€) - https://qwertee.com/", true);
+                _bot.SendPhotoAsync(chatID, new InputOnlineFile(tee.img), tee.title + " (" + tee.price + "€) - https://qwertee.com/", ParseMode.Default, true);
                 System.Threading.Thread.Sleep(1000);
             }
         }
@@ -665,7 +676,7 @@ namespace MainWindow
         private void KawaiiMeter()
         {
             Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " ist zu " + rnd.Next(1, 100) + "% Kawaii");
+            SendMessage(chat.Id, user.Username() + " ist zu " + rnd.Next(0, 101) + "% Kawaii");
         }
         private void RouletteHandler()
         {
@@ -714,7 +725,7 @@ namespace MainWindow
 
             try
             {
-                
+
                 if (Settings.ignoreInput)
                 {
                     return;
@@ -722,10 +733,11 @@ namespace MainWindow
                 message = messageEventArgs.Message;
 
 
-                if (message == null || message.Type != MessageType.TextMessage) return;
+                if (message == null || message.Type != MessageType.Text) return;
 
                 from = message.From;
                 chat = message.Chat;
+                
 
                 if (message.Text.StartsWith("/"))
                 {
@@ -904,19 +916,19 @@ namespace MainWindow
                 string pr0List = HTTPRequester.SimpleRequest(url);
 
                 Pr0List list = JsonConvert.DeserializeObject<Pr0List>(pr0List);
-                List<InlineQueryResult> results = new List<InlineQueryResult>();
+                List<InlineQueryResultMpeg4Gif> results = new List<InlineQueryResultMpeg4Gif>();
                 int i = 1;
                 foreach (Pr0Element itm in list.items)
                 {
                     if (i < 20)
                     {
                         //Console.WriteLine(itm.GetUrl());
-                        InlineQueryResult res = new InlineQueryResultMpeg4Gif
-                        {
-                            Id = itm.id.ToString(),
-                            ThumbUrl = itm.GetUrl(),
-                            Url = itm.GetUrl()
-                        };
+                        InlineQueryResultMpeg4Gif res = new InlineQueryResultMpeg4Gif
+                        (
+                            itm.id.ToString(),
+                            itm.GetUrl(),
+                           itm.GetUrl()
+                        );
                         results.Add(res);
                         i++;
                     }
