@@ -34,6 +34,8 @@ namespace MainWindow
         private static CommandController cController = null;
         private static Dictionary<long, decimal> threshold = new Dictionary<long, decimal>();
 
+        private static Random rnd = new Random();
+
         public Bot(string key)
         {
             InitCommands();
@@ -134,6 +136,7 @@ namespace MainWindow
             InitSingleCommand(new string[] { "simon" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", SimonHate);
             InitSingleCommand(new string[] { "arne" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", ArneHate);
             InitSingleCommand(new string[] { "pascal" }, "Jeder kennt es.. Man hasst Simon so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich ihn heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du Simon heute hasst.", PascalHate);
+            InitSingleCommand(new string[] { "hate", "hateall", "allhate" }, "Jeder kennt es.. Man hasst die gesamte Gruppe so sehr, dass man sich fragt:" + Environment.NewLine + "Wie sehr hasse ich euch heute eigentlich?" + Environment.NewLine + Environment.NewLine + "Damit ist ab heute Schluss! Lass dir jetzt vom Bot ausgeben wie sehr du deine Gruppe heute hasst.", AllHate);
 
             InitSingleCommand(new string[] { "jing" }, "Zeigt den heutigen Mittagstisch von Jing-Jai.", GetFoodJingJai);
             InitSingleCommand(new string[] { "police", "polizei", "pol" }, "Zeigt aktuelle Presseinformationen der gewünschten Stadt an." + Environment.NewLine + "Beispiel: /police bremen" + Environment.NewLine + "Beschreibung: Gibt die aktuellste Nachricht der Polizeipresse für die Stadt 'bremen' zurück.", GetPoliceNews);
@@ -150,7 +153,7 @@ namespace MainWindow
                 return;
             }
 
-            
+
         }
 
         private void InitSingleCommand(string[] cmd, string description, Action method)
@@ -167,30 +170,51 @@ namespace MainWindow
             long chatID = chat.Id;
             SendMessage(chatID, "Pasquale ist 350€ mehr Wert als Yanniv!");
         }
+        private dynamic GetHateFor(string name, ChatUser user)
+        {
+            dynamic ret = new System.Dynamic.ExpandoObject();
+            ret.hatePercent = rnd.Next(0, 101);
+            ret.hateName = name;
+            ret.output = user.Username() + " hasst " + ret.hateName + " heute zu " + ret.hatePercent + "%";
+            return ret;
+        }
+
+        private void AllHate()
+        {
+            StringBuilder strBuild = new StringBuilder();
+            List<dynamic> hates = new List<dynamic>();
+            hates.Add(GetHateFor("Arne", user));
+            hates.Add(GetHateFor("Bent", user));
+            hates.Add(GetHateFor("Bryan", user));
+            hates.Add(GetHateFor("Pascal", user));
+            hates.Add(GetHateFor("Simon", user));
+            foreach (dynamic hate in hates.OrderByDescending(h => h.hatePercent))
+            {
+                strBuild.AppendLine(hate.output);
+            }
+
+            SendMessage(chat.Id, strBuild.ToString());
+        }
+
         private void BentHate()
         {
-            Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Bent heute zu " + rnd.Next(0, 101) + "%");
+            SendMessage(chat.Id, GetHateFor("Bent", user));
         }
         private void BryanHate()
         {
-            Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Bryan heute zu " + rnd.Next(0, 101) + "%");
+            SendMessage(chat.Id, GetHateFor("Bryan", user));
         }
         private void SimonHate()
         {
-            Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Simon heute zu " + rnd.Next(0, 101) + "%");
+            SendMessage(chat.Id, GetHateFor("Simon", user));
         }
         private void ArneHate()
         {
-            Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Arne heute zu " + rnd.Next(0, 101) + "%");
+            SendMessage(chat.Id, GetHateFor("Arne", user));
         }
         private void PascalHate()
         {
-            Random rnd = new Random();
-            SendMessage(chat.Id, user.Username() + " hasst Pascal heute zu " + rnd.Next(0, 101) + "%");
+            SendMessage(chat.Id, GetHateFor("Pascal", user));
         }
 
         private void ShowTees()
@@ -737,7 +761,7 @@ namespace MainWindow
 
                 from = message.From;
                 chat = message.Chat;
-                
+
 
                 if (message.Text.StartsWith("/"))
                 {
